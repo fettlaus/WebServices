@@ -18,25 +18,18 @@ public class SensorMain {
          String existingSensor = "";
          String anzeige[] = new String[args.length - 3];
          int anzeigeCus[];
-         int anz;
-         final String name;
          
          
          if (args.length >= 1) {
-             port = args[0];
+        	 sensorName = args[0];
          }
 
          if (args.length >= 2) {
-             sensorName = args[1];
+        	 existingSensor = args[1];
          }
 
          if (args.length >= 3) {
-             existingSensor = args[2];
-         }
-
-         if (args.length >= 4) {
-             
-        	 for (int i = 0; i < args.length - 3; i++) {
+        	 for (int i = 0; i < args.length - 2; i++) {
         		 anzeige[i] = args[i+3];
         	 }
         	 
@@ -49,7 +42,7 @@ public class SensorMain {
 //     	 for (int i = 0; i < anzeigeCus.length; i++) {
 //    		 System.out.println(anzeigeCus[i]);;
 //    	 }
-         Sensor sensor = new Sensor(Integer.parseInt(port), sensorName, existingSensor, anzeigeCus);
+         Sensor sensor = new Sensor(sensorName, existingSensor, anzeigeCus);
          Endpoint endpoint =
              Endpoint.publish("http://"+ host +":"+ port +"/sensor", sensor);
          
