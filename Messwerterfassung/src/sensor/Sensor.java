@@ -55,8 +55,5 @@ public class Sensor {
     
     // Koordinator functions
   
-    public void getsomething(){
-        
-    }
     
 }
