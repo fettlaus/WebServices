@@ -1,7 +1,14 @@
 package sensor;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.xml.ws.Endpoint;
+
 public class SensorMain {
 
+  
+	
     public static void main(String[] args) {
         // TODO Auto-generated method stub
     	//Port /Endpoint(Sensor x)/ existierenden Sensor/ ... / 
@@ -9,8 +16,11 @@ public class SensorMain {
          String port = "1080";
          String sensorName = "Sensorx";
          String existingSensor = "";
-         String 
+         String anzeige[] = new String[args.length - 3];
+         int anzeigeCus[];
+         int anz;
          final String name;
+         
          
          if (args.length >= 1) {
              port = args[0];
@@ -25,10 +35,47 @@ public class SensorMain {
          }
 
          if (args.length >= 4) {
-             name = args[3];
-         } else {
-             name = "STARTER" + rnd.nextInt(Integer.MAX_VALUE);
+             
+        	 for (int i = 0; i < args.length - 3; i++) {
+        		 anzeige[i] = args[i+3];
+        	 }
+        	 
          }
+         anzeigeCus = customize(anzeige);
+         
+//         System.out.println(port + " " + sensorName + " " + existingSensor);
+//         
+
+//     	 for (int i = 0; i < anzeigeCus.length; i++) {
+//    		 System.out.println(anzeigeCus[i]);;
+//    	 }
+         Sensor sensor = new Sensor(Integer.parseInt(port), sensorName, existingSensor, anzeigeCus);
+         Endpoint endpoint =
+             Endpoint.publish("http://"+ host +":"+ port +"/sensor", sensor);
+         
+         
          
     }
+    private static int[] customize(String[] anzeige){
+    	List<Integer> ausgabe = new ArrayList<Integer>();
+    	
+    	for (String anz : anzeige) {
+			if(anz.equals("NO") && !ausgabe.contains(0)){
+				ausgabe.add(0); 
+			}else if(anz.equals("SO") && !ausgabe.contains(1)){
+				ausgabe.add(1); 
+			}else if(anz.equals("SW") && !ausgabe.contains(2)){
+				ausgabe.add(2); 
+			}else if(anz.equals("NW") && !ausgabe.contains(3)){
+				ausgabe.add(3); 
+			}
+		}
+    	
+    	int anzeigeCus[] = new int[ausgabe.size()];
+    	for (int i = 0; i < anzeigeCus.length; i++) {
+    		anzeigeCus[i] = ausgabe.get(i);
+    	}
+    	
+    	return anzeigeCus;
+	}
 }
