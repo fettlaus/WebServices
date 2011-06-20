@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<wsdl:definitions xmlns:sensor="http://sensor/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="Sensor" targetNamespace="http://sensor/">
+    <wsdl:types><xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://sensor/">
+	<xsd:complexType name="SensorList">
+		<xsd:sequence maxOccurs="unbounded" minOccurs="1">
+			<xsd:element name="list" type="sensor:SensorObj"></xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="SensorObj">
+		<xsd:sequence>
+			<xsd:element name="location" type="xsd:anyURI"></xsd:element>
+			<xsd:element name="direction" type="sensor:Directions"></xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="Directions">
+
+		<xsd:sequence>
+			<xsd:element name="NE" type="xsd:boolean"></xsd:element>
+			<xsd:element name="SE" type="xsd:boolean"></xsd:element>
+			<xsd:element name="SW" type="xsd:boolean"></xsd:element>
+			<xsd:element name="NW" type="xsd:boolean"></xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+</xsd:schema></wsdl:types>
+    <wsdl:message name="getSensorListRequest">
+  </wsdl:message>
+  <wsdl:message name="getSensorListResponse">
+    <wsdl:part name="list" type="sensor:SensorList"/>
+  </wsdl:message>
+  <wsdl:message name="electionRequest">
+  	<wsdl:part name="requestingID" type="xsd:long"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="electionResponse">
+  	<wsdl:part name="success" type="xsd:boolean"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="addSensorRequest">
+  	<wsdl:part name="sensor" type="sensor:SensorObj"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="addSensorResponse">
+  	<wsdl:part name="success" type="xsd:boolean"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="setCoordinatorRequest">
+  	<wsdl:part name="coordinator" type="sensor:SensorObj"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="setCoordinatorResponse">
+  </wsdl:message>
+  <wsdl:portType name="Sensor">
+    <wsdl:operation name="getSensorList">
+      <wsdl:input message="sensor:getSensorListRequest"/>
+      <wsdl:output message="sensor:getSensorListResponse"/>
+    </wsdl:operation>
+    <wsdl:operation name="election">
+    	<wsdl:input message="sensor:electionRequest"></wsdl:input>
+    	<wsdl:output message="sensor:electionResponse"></wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="addSensor">
+    	<wsdl:input message="sensor:addSensorRequest"></wsdl:input>
+    	<wsdl:output message="sensor:addSensorResponse"></wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="setCoordinator">
+    	<wsdl:input message="sensor:setCoordinatorRequest"></wsdl:input>
+    	<wsdl:output message="sensor:setCoordinatorResponse"></wsdl:output>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="SensorSOAP" type="sensor:Sensor">
+
+  	<soap:binding style="rpc"
+  		transport="http://schemas.xmlsoap.org/soap/http" />
+  	<wsdl:operation name="getSensorList">
+
+  		<soap:operation soapAction="http://sensor/getSensorList" />
+  		<wsdl:input>
+
+  			<soap:body use="literal" namespace="http://sensor/" />
+  		</wsdl:input>
+  		<wsdl:output>
+
+  			<soap:body use="literal" namespace="http://sensor/" />
+  		</wsdl:output>
+  	</wsdl:operation>
+  	<wsdl:operation name="election">
+
+  		<soap:operation soapAction="http://sensor/election" />
+  		<wsdl:input>
+
+  			<soap:body use="literal" namespace="http://sensor/" />
+  		</wsdl:input>
+  		<wsdl:output>
+
+  			<soap:body use="literal" namespace="http://sensor/" />
+  		</wsdl:output>
+  	</wsdl:operation>
+  	<wsdl:operation name="addSensor">
+
+  		<soap:operation soapAction="http://sensor/addSensor" />
+  		<wsdl:input>
+
+  			<soap:body use="literal" namespace="http://sensor/" />
+  		</wsdl:input>
+  		<wsdl:output>
+
+  			<soap:body use="literal" namespace="http://sensor/" />
+  		</wsdl:output>
+  	</wsdl:operation>
+  	<wsdl:operation name="setCoordinator">
+
+  		<soap:operation soapAction="http://sensor/setCoordinator" />
+  		<wsdl:input>
+
+  			<soap:body use="literal" namespace="http://sensor/" />
+  		</wsdl:input>
+  		<wsdl:output>
+
+  			<soap:body use="literal" namespace="http://sensor/" />
+  		</wsdl:output>
+  	</wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="Sensor">
+    <wsdl:port binding="sensor:SensorSOAP" name="SensorSOAP">
+      <soap:address location="http://www.example.org/"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>
