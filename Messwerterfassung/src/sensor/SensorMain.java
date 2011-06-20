@@ -8,13 +8,9 @@ public class SensorMain {
   
 	
     public static void main(String[] args) {
-        // TODO Auto-generated method stub
-    	//Port /Endpoint(Sensor x)/ existierenden Sensor/ ... / 
-    	 String host = "localhost";
-         String sensorName = "Sensorx";
+        String sensorName = "Sensorx";
          String existingSensor = "";
          String anzeige[] = null;
-         int anzeigeCus[];
          Directions directions;
          int dirAs = 2;
          
