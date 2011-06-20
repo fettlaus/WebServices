@@ -3,24 +3,24 @@ package sensor;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.jws.WebService;
 import javax.jws.soap.SOAPBinding;
 import javax.jws.soap.SOAPBinding.Style;
 import javax.xml.namespace.QName;
 
-@WebService(name="Sensor")
-@SOAPBinding(style=Style.RPC)
-public class SensorImpl {
+@WebService(wsdlLocation="Sensor.wsdl")
+public class SensorImpl implements Sensor {
 
     public long id;
     String name;
     String existing;
     int[] directions;
-    ArrayList<SensorRef> sensorlist;
+    SensorList sensorlist;
     // Liste ueber http://ip.address:port/
     ArrayList<String> sensorstrings;
-    SensorRef coordinator;
+    Sensor coordinator;
     
     /**
      * @param port Port to run on
@@ -38,8 +38,8 @@ public class SensorImpl {
         
     }
     
-    private SensorRef toSensor(String sensor) throws MalformedURLException{
-        return new SensorService(new URL(sensor+"sensor?wsdl"),new QName(sensor,"sensor")).getSensorRefPort();
+    private Sensor toSensor(String sensor) throws MalformedURLException{
+        return new Sensor_Service(new URL(sensor+"sensor?wsdl"),new QName(sensor,"sensor")).getSensorSOAP();
     }
     
     public String[] getSensors(){
@@ -73,15 +73,19 @@ public class SensorImpl {
         return id;
     }
     
-    public boolean addSensor(String sensor){
-        sensorstrings.add(sensor);
-        try {
-            sensorlist.add(toSensor(sensor));
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-            return false;
-        }
+    @Override
+    public boolean addSensor(SensorObj sensor){
+        sensorlist.getList().add(sensor);
         return true;
+    }
+    @Override
+    public boolean election(long requestingID) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+    @Override
+    public SensorList getSensorList() {       
+        return sensorlist;
     }
     
     // Koordinator functions

@@ -25,14 +25,44 @@ public interface Sensor {
 
     /**
      * 
-     * @param setSensorListRequest
+     * @return
+     *     returns sensor.SensorList
+     */
+    @WebMethod(action = "http://sensor/getSensorList")
+    @WebResult(name = "list", partName = "list")
+    public SensorList getSensorList();
+
+    /**
+     * 
+     * @param requestingID
      * @return
      *     returns boolean
      */
-    @WebMethod(action = "http://sensor/setSensorList")
-    @WebResult(name = "setSensorListResponse", partName = "setSensorListResponse")
-    public boolean setSensorList(
-        @WebParam(name = "setSensorListRequest", partName = "setSensorListRequest")
-        SensorList setSensorListRequest);
+    @WebMethod(action = "http://sensor/election")
+    @WebResult(name = "success", partName = "success")
+    public boolean election(
+        @WebParam(name = "requestingID", partName = "requestingID")
+        long requestingID);
+
+    /**
+     * 
+     * @param sensor
+     * @return
+     *     returns boolean
+     */
+    @WebMethod(action = "http://sensor/addSensor")
+    @WebResult(name = "success", partName = "success")
+    public boolean addSensor(
+        @WebParam(name = "sensor", partName = "sensor")
+        SensorObj sensor);
+
+    /**
+     * 
+     * @param coordinator
+     */
+    @WebMethod(action = "http://sensor/setCoordinator")
+    public void setCoordinator(
+        @WebParam(name = "coordinator", partName = "coordinator")
+        SensorObj coordinator);
 
 }
