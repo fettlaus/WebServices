@@ -7,7 +7,7 @@ import javax.jws.WebService;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
-@WebService(wsdlLocation = "Sensor.wsdl", serviceName = "SensorService", portName = "SensorSOAP", targetNamespace = "http://sensor/", name = "Sensor")
+@WebService(wsdlLocation = "Sensor.wsdl", serviceName = "SensorService", portName = "SensorSOAP", targetNamespace = "http://sensor/", name = "Sensor",endpointInterface="sensor.Sensor")
 public class SensorImpl implements Sensor {
 
     public long id;
@@ -50,8 +50,7 @@ public class SensorImpl implements Sensor {
 
     @Override
     public boolean addSensor(SensorObj sensor) {
-        List<SensorObj> sl = sensorlist.getList();
-        sl.add(sensor);
+        sensorlist.getList().add(sensor);
         return true;
     }
 
@@ -127,7 +126,8 @@ public class SensorImpl implements Sensor {
             coordinator = myObj;
         else
             coordinator = toSensor(boot).getCoordinator();
-        toSensor(coordinator).addSensor(myObj);
+        Sensor s = toSensor(coordinator);
+        s.addSensor(myObj);
         
         Holder<SensorList> l = new Holder<SensorList>();
         Holder<Long> v = new Holder<Long>();
