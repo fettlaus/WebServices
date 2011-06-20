@@ -3,11 +3,7 @@ package sensor;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.List;
-
 import javax.jws.WebService;
-import javax.jws.soap.SOAPBinding;
-import javax.jws.soap.SOAPBinding.Style;
 import javax.xml.namespace.QName;
 
 @WebService(wsdlLocation="Sensor.wsdl")
@@ -86,6 +82,11 @@ public class SensorImpl implements Sensor {
     @Override
     public SensorList getSensorList() {       
         return sensorlist;
+    }
+    @Override
+    public void setCoordinator(SensorObj coordinator) {
+        // TODO Auto-generated method stub
+        
     }
     
     // Koordinator functions
