@@ -40,6 +40,11 @@
   <wsdl:message name="addSensorResponse">
   	<wsdl:part name="success" type="xsd:boolean"></wsdl:part>
   </wsdl:message>
+  <wsdl:message name="setCoordinatorRequest">
+  	<wsdl:part name="coordinator" type="sensor:SensorObj"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="setCoordinatorResponse">
+  </wsdl:message>
   <wsdl:portType name="Sensor">
     <wsdl:operation name="getSensorList">
       <wsdl:input message="sensor:getSensorListRequest"/>
@@ -52,6 +57,10 @@
     <wsdl:operation name="addSensor">
     	<wsdl:input message="sensor:addSensorRequest"></wsdl:input>
     	<wsdl:output message="sensor:addSensorResponse"></wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="setCoordinator">
+    	<wsdl:input message="sensor:setCoordinatorRequest"></wsdl:input>
+    	<wsdl:output message="sensor:setCoordinatorResponse"></wsdl:output>
     </wsdl:operation>
   </wsdl:portType>
   <wsdl:binding name="SensorSOAP" type="sensor:Sensor">
@@ -85,6 +94,18 @@
   	<wsdl:operation name="addSensor">
 
   		<soap:operation soapAction="http://sensor/addSensor" />
+  		<wsdl:input>
+
+  			<soap:body use="literal" namespace="http://sensor/" />
+  		</wsdl:input>
+  		<wsdl:output>
+
+  			<soap:body use="literal" namespace="http://sensor/" />
+  		</wsdl:output>
+  	</wsdl:operation>
+  	<wsdl:operation name="setCoordinator">
+
+  		<soap:operation soapAction="http://sensor/setCoordinator" />
   		<wsdl:input>
 
   			<soap:body use="literal" namespace="http://sensor/" />
