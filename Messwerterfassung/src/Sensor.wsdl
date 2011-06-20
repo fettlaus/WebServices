@@ -10,6 +10,7 @@
 		<xsd:sequence>
 			<xsd:element name="location" type="xsd:anyURI"></xsd:element>
 			<xsd:element name="direction" type="sensor:Directions"></xsd:element>
+			<xsd:element name="id" type="xsd:long"></xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -19,17 +20,18 @@
 			<xsd:element name="NE" type="xsd:boolean"></xsd:element>
 			<xsd:element name="SE" type="xsd:boolean"></xsd:element>
 			<xsd:element name="SW" type="xsd:boolean"></xsd:element>
-			<xsd:element name="NW" type="xsd:boolean"></xsd:element>
+			<xsd:element name="NW" type="xsd:boolean"></xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
+
 </xsd:schema></wsdl:types>
-    <wsdl:message name="getSensorListRequest">
+    <wsdl:message name="getDatabaseRequest">
   </wsdl:message>
-  <wsdl:message name="getSensorListResponse">
+  <wsdl:message name="getDatabaseResponse">
     <wsdl:part name="list" type="sensor:SensorList"/>
+    <wsdl:part name="version" type="xsd:long"></wsdl:part>
   </wsdl:message>
-  <wsdl:message name="electionRequest">
-  	<wsdl:part name="requestingID" type="xsd:long"></wsdl:part>
+  <wsdl:message name="electionRequest">
   </wsdl:message>
   <wsdl:message name="electionResponse">
   	<wsdl:part name="success" type="xsd:boolean"></wsdl:part>
@@ -46,10 +48,51 @@
   <wsdl:message name="setCoordinatorResponse">
         <wsdl:part name="success" type="xsd:boolean"></wsdl:part>
   </wsdl:message>
+  <wsdl:message name="pingRequest">
+  </wsdl:message>
+  <wsdl:message name="pingResponse">
+  	<wsdl:part name="success" type="xsd:boolean"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="getCoordinatorRequest">
+  </wsdl:message>
+  <wsdl:message name="getCoordinatorResponse">
+  	<wsdl:part name="coordinator" type="sensor:SensorObj"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="getDisplayRequest">
+  </wsdl:message>
+  <wsdl:message name="getDisplayResponse">
+  	<wsdl:part name="display" type="xsd:anyURI"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="activateDisplayRequest">
+  	<wsdl:part name="direction" type="xsd:int"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="activateDisplayResponse">
+  	<wsdl:part name="success" type="xsd:boolean"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="addDatabaseRequest">
+  	<wsdl:part name="sensor" type="sensor:SensorObj"></wsdl:part>
+  	<wsdl:part name="version" type="xsd:long"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="addDatabaseResponse">
+  	<wsdl:part name="success" type="xsd:boolean"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="removeDatabaseRequest">
+  	<wsdl:part name="sensor" type="sensor:SensorObj"></wsdl:part>
+  	<wsdl:part name="version" type="xsd:long"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="removeDatabaseResponse">
+  	<wsdl:part name="success" type="xsd:boolean"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="removeSensorRequest">
+  	<wsdl:part name="sensor" type="sensor:SensorObj"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="removeSensorResponse">
+  	<wsdl:part name="success" type="xsd:boolean"></wsdl:part>
+  </wsdl:message>
   <wsdl:portType name="Sensor">
-    <wsdl:operation name="getSensorList">
-      <wsdl:input message="sensor:getSensorListRequest"/>
-      <wsdl:output message="sensor:getSensorListResponse"/>
+    <wsdl:operation name="getDatabase">
+      <wsdl:input message="sensor:getDatabaseRequest"/>
+      <wsdl:output message="sensor:getDatabaseResponse"/>
     </wsdl:operation>
     <wsdl:operation name="election">
     	<wsdl:input message="sensor:electionRequest"></wsdl:input>
@@ -63,57 +106,170 @@
     	<wsdl:input message="sensor:setCoordinatorRequest"></wsdl:input>
     	<wsdl:output message="sensor:setCoordinatorResponse"></wsdl:output>
     </wsdl:operation>
+    <wsdl:operation name="ping">
+    	<wsdl:input message="sensor:pingRequest"></wsdl:input>
+    	<wsdl:output message="sensor:pingResponse"></wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getCoordinator">
+    	<wsdl:input message="sensor:getCoordinatorRequest"></wsdl:input>
+    	<wsdl:output message="sensor:getCoordinatorResponse"></wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getDisplay">
+    	<wsdl:input message="sensor:getDisplayRequest"></wsdl:input>
+    	<wsdl:output message="sensor:getDisplayResponse"></wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="activateDisplay">
+    	<wsdl:input message="sensor:activateDisplayRequest"></wsdl:input>
+    	<wsdl:output message="sensor:activateDisplayResponse"></wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="addDatabase">
+    	<wsdl:input message="sensor:addDatabaseRequest"></wsdl:input>
+    	<wsdl:output message="sensor:addDatabaseResponse"></wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="removeDatabase">
+    	<wsdl:input message="sensor:removeDatabaseRequest"></wsdl:input>
+    	<wsdl:output message="sensor:removeDatabaseResponse"></wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="removeSensor">
+    	<wsdl:input message="sensor:removeSensorRequest"></wsdl:input>
+    	<wsdl:output message="sensor:removeSensorResponse"></wsdl:output>
+    </wsdl:operation>
   </wsdl:portType>
   <wsdl:binding name="SensorSOAP" type="sensor:Sensor">
 
   	<soap:binding style="rpc"
-  		transport="http://schemas.xmlsoap.org/soap/http" />
-  	<wsdl:operation name="getSensorList">
+  		transport="http://schemas.xmlsoap.org/soap/http">
+  	</soap:binding>
+  	<wsdl:operation name="getDatabase">
 
-  		<soap:operation soapAction="http://sensor/getSensorList" />
+  		<soap:operation soapAction="http://sensor/getDatabase"></soap:operation>
   		<wsdl:input>
 
-  			<soap:body use="literal" namespace="http://sensor/" />
+  			<soap:body use="literal" namespace="http://sensor/"></soap:body>
   		</wsdl:input>
   		<wsdl:output>
 
-  			<soap:body use="literal" namespace="http://sensor/" />
+  			<soap:body use="literal" namespace="http://sensor/"></soap:body>
   		</wsdl:output>
   	</wsdl:operation>
   	<wsdl:operation name="election">
 
-  		<soap:operation soapAction="http://sensor/election" />
+  		<soap:operation soapAction="http://sensor/election"></soap:operation>
   		<wsdl:input>
 
-  			<soap:body use="literal" namespace="http://sensor/" />
+  			<soap:body use="literal" namespace="http://sensor/"></soap:body>
   		</wsdl:input>
   		<wsdl:output>
 
-  			<soap:body use="literal" namespace="http://sensor/" />
+  			<soap:body use="literal" namespace="http://sensor/"></soap:body>
   		</wsdl:output>
   	</wsdl:operation>
   	<wsdl:operation name="addSensor">
 
-  		<soap:operation soapAction="http://sensor/addSensor" />
+  		<soap:operation soapAction="http://sensor/addSensor"></soap:operation>
   		<wsdl:input>
 
-  			<soap:body use="literal" namespace="http://sensor/" />
+  			<soap:body use="literal" namespace="http://sensor/"></soap:body>
   		</wsdl:input>
   		<wsdl:output>
 
-  			<soap:body use="literal" namespace="http://sensor/" />
+  			<soap:body use="literal" namespace="http://sensor/"></soap:body>
   		</wsdl:output>
   	</wsdl:operation>
   	<wsdl:operation name="setCoordinator">
 
-  		<soap:operation soapAction="http://sensor/setCoordinator" />
+  		<soap:operation soapAction="http://sensor/setCoordinator"></soap:operation>
   		<wsdl:input>
 
-  			<soap:body use="literal" namespace="http://sensor/" />
+  			<soap:body use="literal" namespace="http://sensor/"></soap:body>
   		</wsdl:input>
   		<wsdl:output>
 
-  			<soap:body use="literal" namespace="http://sensor/" />
+  			<soap:body use="literal" namespace="http://sensor/"></soap:body>
+  		</wsdl:output>
+  	</wsdl:operation>
+  	<wsdl:operation name="ping">
+
+  		<soap:operation soapAction="http://sensor/ping"></soap:operation>
+  		<wsdl:input>
+
+  			<soap:body use="literal" namespace="http://sensor/"></soap:body>
+  		</wsdl:input>
+  		<wsdl:output>
+
+  			<soap:body use="literal" namespace="http://sensor/"></soap:body>
+  		</wsdl:output>
+  	</wsdl:operation>
+  	<wsdl:operation name="getCoordinator">
+
+  		<soap:operation soapAction="http://sensor/getCoordinator"></soap:operation>
+  		<wsdl:input>
+
+  			<soap:body use="literal" namespace="http://sensor/"></soap:body>
+  		</wsdl:input>
+  		<wsdl:output>
+
+  			<soap:body use="literal" namespace="http://sensor/"></soap:body>
+  		</wsdl:output>
+  	</wsdl:operation>
+  	<wsdl:operation name="getDisplay">
+
+  		<soap:operation soapAction="http://sensor/getDisplay"></soap:operation>
+  		<wsdl:input>
+
+  			<soap:body use="literal" namespace="http://sensor/"></soap:body>
+  		</wsdl:input>
+  		<wsdl:output>
+
+  			<soap:body use="literal" namespace="http://sensor/"></soap:body>
+  		</wsdl:output>
+  	</wsdl:operation>
+  	<wsdl:operation name="activateDisplay">
+
+  		<soap:operation soapAction="http://sensor/activateDisplay"></soap:operation>
+  		<wsdl:input>
+
+  			<soap:body use="literal" namespace="http://sensor/"></soap:body>
+  		</wsdl:input>
+  		<wsdl:output>
+
+  			<soap:body use="literal" namespace="http://sensor/"></soap:body>
+  		</wsdl:output>
+  	</wsdl:operation>
+  	<wsdl:operation name="addDatabase">
+
+  		<soap:operation soapAction="http://sensor/addDatabase"></soap:operation>
+  		<wsdl:input>
+
+  			<soap:body use="literal" namespace="http://sensor/"></soap:body>
+  		</wsdl:input>
+  		<wsdl:output>
+
+  			<soap:body use="literal" namespace="http://sensor/"></soap:body>
+  		</wsdl:output>
+  	</wsdl:operation>
+  	<wsdl:operation name="removeDatabase">
+
+  		<soap:operation soapAction="http://sensor/removeDatabase"></soap:operation>
+  		<wsdl:input>
+
+  			<soap:body use="literal" namespace="http://sensor/"></soap:body>
+  		</wsdl:input>
+  		<wsdl:output>
+
+  			<soap:body use="literal" namespace="http://sensor/"></soap:body>
+  		</wsdl:output>
+  	</wsdl:operation>
+  	<wsdl:operation name="removeSensor">
+
+  		<soap:operation soapAction="http://sensor/removeSensor"></soap:operation>
+  		<wsdl:input>
+
+  			<soap:body use="literal" namespace="http://sensor/"></soap:body>
+  		</wsdl:input>
+  		<wsdl:output>
+
+  			<soap:body use="literal" namespace="http://sensor/"></soap:body>
   		</wsdl:output>
   	</wsdl:operation>
   </wsdl:binding>

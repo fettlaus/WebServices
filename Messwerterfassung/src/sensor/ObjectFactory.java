@@ -30,11 +30,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link Directions }
+     * Create an instance of {@link SensorList }
      * 
      */
-    public Directions createDirections() {
-        return new Directions();
+    public SensorList createSensorList() {
+        return new SensorList();
     }
 
     /**
@@ -46,11 +46,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link SensorList }
+     * Create an instance of {@link Directions }
      * 
      */
-    public SensorList createSensorList() {
-        return new SensorList();
+    public Directions createDirections() {
+        return new Directions();
     }
 
 }

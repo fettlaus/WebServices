@@ -5,17 +5,18 @@ import java.net.URL;
 import java.util.ArrayList;
 import javax.jws.WebService;
 import javax.xml.namespace.QName;
+import javax.xml.ws.Holder;
 
-@WebService(wsdlLocation="Sensor.wsdl")
+@WebService(wsdlLocation="Sensor.wsdl",serviceName="Sensor",portName="SensorSOAP",targetNamespace="http://sensor/",name="Sensor")
 public class SensorImpl implements Sensor {
 
     public long id;
     String name;
     String existing;
     int[] directions;
-    SensorList sensorlist;
+    SensorList sensorlist = new SensorList();
     // Liste ueber http://ip.address:port/
-    ArrayList<String> sensorstrings;
+    ArrayList<String> sensorstrings = new ArrayList<String>();
     Sensor coordinator;
     
     /**
@@ -30,64 +31,87 @@ public class SensorImpl implements Sensor {
         this.directions = directions;
         sensorstrings.add("name");
     }
-    SensorImpl(){
-        
+    
+    private Sensor toSensor(SensorObj sensor) throws MalformedURLException{
+        return new Sensor_Service(new URL(sensor.getLocation()+"sensor?wsdl"),new QName("http://sensor/", "sensor")).getSensorSOAP();
     }
     
-    private Sensor toSensor(String sensor) throws MalformedURLException{
-        return new Sensor_Service(new URL(sensor+"sensor?wsdl"),new QName(sensor,"sensor")).getSensorSOAP();
-    }
-    
-    public String[] getSensors(){
-        return sensorstrings.toArray(new String[]{});
-    }
-    
-  //public SensorService[] getSensorServicelist(){
-   //     return sensorservicelist.toArray(new SensorService[]{});
-   // }
-    
-    // election algorithm 
-    
-    public boolean setCoordinator(String coordinator){
-            try {
+    @Override
+    public boolean setCoordinator(SensorObj coordinator){
+              try {
                 this.coordinator = toSensor(coordinator);
-            } catch (MalformedURLException e) {
+            } catch (MalformedURLException e) {                
                 e.printStackTrace();
                 return false;
             }
+            return true;
+
         
-        return true;
-        
-    }
-    public boolean election(){
-        return true;
     }
 
     // Webservice functions
-    
-    public long getID(){
-        return id;
-    }
+
     
     @Override
     public boolean addSensor(SensorObj sensor){
         sensorlist.getList().add(sensor);
         return true;
     }
+
     @Override
-    public boolean election(long requestingID) {
-        // TODO Auto-generated method stub
-        return false;
-    }
-    @Override
-    public SensorList getSensorList() {       
-        return sensorlist;
-    }
-    @Override
-    public void setCoordinator(SensorObj coordinator) {
+    public void getDatabase(Holder<SensorList> list, Holder<Long> version) {
         // TODO Auto-generated method stub
         
     }
+
+    @Override
+    public boolean election() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public boolean ping() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public SensorObj getCoordinator() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public String getDisplay() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public boolean activateDisplay(int direction) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public boolean addDatabase(SensorObj sensor, long version) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public boolean removeDatabase(SensorObj sensor, long version) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public boolean removeSensor(SensorObj sensor) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
     
     // Koordinator functions
   

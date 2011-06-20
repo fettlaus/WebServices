@@ -7,6 +7,7 @@ import javax.jws.WebResult;
 import javax.jws.WebService;
 import javax.jws.soap.SOAPBinding;
 import javax.xml.bind.annotation.XmlSeeAlso;
+import javax.xml.ws.Holder;
 
 
 /**
@@ -25,24 +26,24 @@ public interface Sensor {
 
     /**
      * 
-     * @return
-     *     returns sensor.SensorList
+     * @param list
+     * @param version
      */
-    @WebMethod(action = "http://sensor/getSensorList")
-    @WebResult(name = "list", partName = "list")
-    public SensorList getSensorList();
+    @WebMethod(action = "http://sensor/getDatabase")
+    public void getDatabase(
+        @WebParam(name = "list", mode = WebParam.Mode.OUT, partName = "list")
+        Holder<SensorList> list,
+        @WebParam(name = "version", mode = WebParam.Mode.OUT, partName = "version")
+        Holder<Long> version);
 
     /**
      * 
-     * @param requestingID
      * @return
      *     returns boolean
      */
     @WebMethod(action = "http://sensor/election")
     @WebResult(name = "success", partName = "success")
-    public boolean election(
-        @WebParam(name = "requestingID", partName = "requestingID")
-        long requestingID);
+    public boolean election();
 
     /**
      * 
@@ -59,10 +60,94 @@ public interface Sensor {
     /**
      * 
      * @param coordinator
+     * @return
+     *     returns boolean
      */
     @WebMethod(action = "http://sensor/setCoordinator")
-    public void setCoordinator(
+    @WebResult(name = "success", partName = "success")
+    public boolean setCoordinator(
         @WebParam(name = "coordinator", partName = "coordinator")
         SensorObj coordinator);
+
+    /**
+     * 
+     * @return
+     *     returns boolean
+     */
+    @WebMethod(action = "http://sensor/ping")
+    @WebResult(name = "success", partName = "success")
+    public boolean ping();
+
+    /**
+     * 
+     * @return
+     *     returns sensor.SensorObj
+     */
+    @WebMethod(action = "http://sensor/getCoordinator")
+    @WebResult(name = "coordinator", partName = "coordinator")
+    public SensorObj getCoordinator();
+
+    /**
+     * 
+     * @return
+     *     returns java.lang.String
+     */
+    @WebMethod(action = "http://sensor/getDisplay")
+    @WebResult(name = "display", partName = "display")
+    public String getDisplay();
+
+    /**
+     * 
+     * @param direction
+     * @return
+     *     returns boolean
+     */
+    @WebMethod(action = "http://sensor/activateDisplay")
+    @WebResult(name = "success", partName = "success")
+    public boolean activateDisplay(
+        @WebParam(name = "direction", partName = "direction")
+        int direction);
+
+    /**
+     * 
+     * @param sensor
+     * @param version
+     * @return
+     *     returns boolean
+     */
+    @WebMethod(action = "http://sensor/addDatabase")
+    @WebResult(name = "success", partName = "success")
+    public boolean addDatabase(
+        @WebParam(name = "sensor", partName = "sensor")
+        SensorObj sensor,
+        @WebParam(name = "version", partName = "version")
+        long version);
+
+    /**
+     * 
+     * @param sensor
+     * @param version
+     * @return
+     *     returns boolean
+     */
+    @WebMethod(action = "http://sensor/removeDatabase")
+    @WebResult(name = "success", partName = "success")
+    public boolean removeDatabase(
+        @WebParam(name = "sensor", partName = "sensor")
+        SensorObj sensor,
+        @WebParam(name = "version", partName = "version")
+        long version);
+
+    /**
+     * 
+     * @param sensor
+     * @return
+     *     returns boolean
+     */
+    @WebMethod(action = "http://sensor/removeSensor")
+    @WebResult(name = "success", partName = "success")
+    public boolean removeSensor(
+        @WebParam(name = "sensor", partName = "sensor")
+        SensorObj sensor);
 
 }

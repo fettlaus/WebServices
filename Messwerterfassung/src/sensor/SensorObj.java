@@ -20,6 +20,7 @@ import javax.xml.bind.annotation.XmlType;
  *       &lt;sequence>
  *         &lt;element name="location" type="{http://www.w3.org/2001/XMLSchema}anyURI"/>
  *         &lt;element name="direction" type="{http://sensor/}Directions"/>
+ *         &lt;element name="id" type="{http://www.w3.org/2001/XMLSchema}long"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -31,7 +32,8 @@ import javax.xml.bind.annotation.XmlType;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "SensorObj", propOrder = {
     "location",
-    "direction"
+    "direction",
+    "id"
 })
 public class SensorObj {
 
@@ -40,6 +42,7 @@ public class SensorObj {
     protected String location;
     @XmlElement(required = true)
     protected Directions direction;
+    protected long id;
 
     /**
      * Gets the value of the location property.
@@ -87,6 +90,22 @@ public class SensorObj {
      */
     public void setDirection(Directions value) {
         this.direction = value;
+    }
+
+    /**
+     * Gets the value of the id property.
+     * 
+     */
+    public long getId() {
+        return id;
+    }
+
+    /**
+     * Sets the value of the id property.
+     * 
+     */
+    public void setId(long value) {
+        this.id = value;
     }
 
 }
