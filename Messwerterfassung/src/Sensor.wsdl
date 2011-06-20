@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<wsdl:definitions xmlns:sensor="http://sensor/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="Sensor" targetNamespace="http://sensor/">
+  <wsdl:message name="NewOperationRequest">
+    <wsdl:part name="NewOperationRequest" type="xsd:string"/>
+  </wsdl:message>
+  <wsdl:message name="NewOperationResponse">
+    <wsdl:part name="NewOperationResponse" type="xsd:string"/>
+  </wsdl:message>
+  <wsdl:portType name="Sensor">
+    <wsdl:operation name="NewOperation">
+      <wsdl:input message="sensor:NewOperationRequest"/>
+      <wsdl:output message="sensor:NewOperationResponse"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="SensorSOAP" type="sensor:Sensor">
+    <soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="NewOperation">
+      <soap:operation soapAction="http://sensor/NewOperation"/>
+      <wsdl:input>
+        <soap:body namespace="http://sensor/" use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body namespace="http://sensor/" use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="Sensor">
+    <wsdl:port binding="sensor:SensorSOAP" name="SensorSOAP">
+      <soap:address location="http://www.example.org/"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>
