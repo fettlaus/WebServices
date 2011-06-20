@@ -155,7 +155,7 @@ public class SensorImpl implements Sensor {
     private Sensor toSensor(SensorObj sensor) {
         Sensor ref = null;
         try {
-            ref = new Sensor_Service(new URL(sensor.getLocation() + "sensor?wsdl"), new QName("http://sensor/",
+            ref = new SensorService(new URL(sensor.getLocation() + "sensor?wsdl"), new QName("http://sensor/",
                     "SensorService")).getSensorSOAP();
         } catch (Exception e) {
             removeFromDatabase(sensor);
