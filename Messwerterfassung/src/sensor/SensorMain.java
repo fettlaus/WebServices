@@ -42,7 +42,7 @@ public class SensorMain {
 //     	 for (int i = 0; i < anzeigeCus.length; i++) {
 //    		 System.out.println(anzeigeCus[i]);;
 //    	 }
-         Sensor sensor = new Sensor(sensorName, existingSensor, anzeigeCus);
+         Sensor sensor = new SensorImpl(sensorName, existingSensor, anzeigeCus);
          Endpoint endpoint =
              Endpoint.publish("http://"+ host +":"+ port +"/sensor", sensor);
          
