@@ -1,9 +1,7 @@
 package sensor;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.xml.ws.Endpoint;
+
 
 public class SensorMain {
 
@@ -13,11 +11,12 @@ public class SensorMain {
         // TODO Auto-generated method stub
     	//Port /Endpoint(Sensor x)/ existierenden Sensor/ ... / 
     	 String host = "localhost";
-         String port = "1080";
          String sensorName = "Sensorx";
          String existingSensor = "";
-         String anzeige[] = new String[args.length - 3];
+         String anzeige[] = null;
          int anzeigeCus[];
+         Directions directions;
+         int dirAs = 2;
          
          
          if (args.length >= 1) {
@@ -25,51 +24,49 @@ public class SensorMain {
          }
 
          if (args.length >= 2) {
-        	 existingSensor = args[1];
-         }
-
-         if (args.length >= 3) {
-        	 for (int i = 0; i < args.length - 2; i++) {
-        		 anzeige[i] = args[i+3];
+        	 if (args[1].equals("-k")) {
+        		 existingSensor = null;
+        	 }else if (args[1].equals("-s")){
+        		 existingSensor = args[2];
+        		 dirAs = 3;
         	 }
         	 
          }
-         anzeigeCus = customize(anzeige);
-         
-//         System.out.println(port + " " + sensorName + " " + existingSensor);
-//         
 
-//     	 for (int i = 0; i < anzeigeCus.length; i++) {
-//    		 System.out.println(anzeigeCus[i]);;
-//    	 }
-         Sensor sensor = new SensorImpl(sensorName, existingSensor, anzeigeCus);
+         if (args.length >= 3) {
+        	 anzeige = new String[args.length - dirAs];
+        	 for (int i = 0; i < args.length - dirAs; i++) {
+        		 anzeige[i] = args[i+dirAs];
+        	 }
+        	 
+         }
+         directions = customize(anzeige);
+         
+//         System.out.println(sensorName + " " + existingSensor);
+//     	 System.out.println(directions.isNE() + " " + directions.isSE() + " " + directions.isSW() + " " + directions.isSE());
+
+         SensorImpl sensor = new SensorImpl(sensorName, existingSensor, directions);
          @SuppressWarnings("unused")
         Endpoint endpoint =
-             Endpoint.publish("http://"+ host +":"+ port +"/sensor", sensor);
+             Endpoint.publish("http://"+ sensorName +"/sensor", sensor);
          
          
          
     }
-    private static int[] customize(String[] anzeige){
-    	List<Integer> ausgabe = new ArrayList<Integer>();
-    	
+    private static Directions customize(String[] anzeige){
+    	Directions directions = new Directions();
     	for (String anz : anzeige) {
-			if(anz.equals("NO") && !ausgabe.contains(0)){
-				ausgabe.add(0); 
-			}else if(anz.equals("SO") && !ausgabe.contains(1)){
-				ausgabe.add(1); 
-			}else if(anz.equals("SW") && !ausgabe.contains(2)){
-				ausgabe.add(2); 
-			}else if(anz.equals("NW") && !ausgabe.contains(3)){
-				ausgabe.add(3); 
+			if(anz.equals("NE")){
+				directions.setNE(true); 
+			}else if(anz.equals("SE")){
+				directions.setSE(true); 
+			}else if(anz.equals("SW")){
+				directions.setSW(true);
+			}else if(anz.equals("NW")){
+				directions.setNW(true); 
 			}
 		}
-    	
-    	int anzeigeCus[] = new int[ausgabe.size()];
-    	for (int i = 0; i < anzeigeCus.length; i++) {
-    		anzeigeCus[i] = ausgabe.get(i);
-    	}
-    	
-    	return anzeigeCus;
+    	    	
+    	return directions;
 	}
 }
