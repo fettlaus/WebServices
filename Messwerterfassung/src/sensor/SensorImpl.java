@@ -12,9 +12,9 @@ public class SensorImpl implements Sensor {
     public long id;
     String name;
     String existing;
-    int[] directions;
     SensorList sensorlist = new SensorList();
     Sensor coordinator;
+    Directions directions;
     
     /**
      * @param port Port to run on
@@ -22,7 +22,7 @@ public class SensorImpl implements Sensor {
      * @param existingsensor Some already existing sensor
      * @param directions The scales we want to write on
      */
-    SensorImpl(String name, String existingsensor, int[] directions) {
+    SensorImpl(String name, String existingsensor, Directions directions) {
         this.name = name;
         this.existing = existingsensor;
         this.directions = directions;
@@ -32,40 +32,6 @@ public class SensorImpl implements Sensor {
         return new Sensor_Service(new URL(sensor.getLocation()+"sensor?wsdl"),new QName("http://sensor/", "sensor")).getSensorSOAP();
     }
     
-    @Override
-    public boolean setCoordinator(SensorObj coordinator){
-              try {
-                this.coordinator = toSensor(coordinator);
-            } catch (MalformedURLException e) {                
-                e.printStackTrace();
-                return false;
-            }
-            return true;
-
-        
-    }
-
-    // Webservice functions
-
-    
-    @Override
-    public boolean addSensor(SensorObj sensor){
-        sensorlist.getList().add(sensor);
-        return true;
-    }
-
-    @Override
-    public void getDatabase(Holder<SensorList> list, Holder<Long> version) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public boolean election() {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
     @Override
     public boolean ping() {
         // TODO Auto-generated method stub
@@ -91,6 +57,12 @@ public class SensorImpl implements Sensor {
     }
 
     @Override
+    public void getDatabase(Holder<SensorList> list, Holder<Long> version) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
     public boolean addDatabase(SensorObj sensor, long version) {
         // TODO Auto-generated method stub
         return false;
@@ -100,6 +72,34 @@ public class SensorImpl implements Sensor {
     public boolean removeDatabase(SensorObj sensor, long version) {
         // TODO Auto-generated method stub
         return false;
+    }
+
+    @Override
+    public boolean election() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public boolean setCoordinator(SensorObj coordinator){
+              try {
+                this.coordinator = toSensor(coordinator);
+            } catch (MalformedURLException e) {                
+                e.printStackTrace();
+                return false;
+            }
+            return true;
+
+        
+    }
+
+    // Webservice functions
+
+    
+    @Override
+    public boolean addSensor(SensorObj sensor){
+        sensorlist.getList().add(sensor);
+        return true;
     }
 
     @Override
