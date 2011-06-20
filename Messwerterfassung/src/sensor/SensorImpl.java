@@ -1,12 +1,13 @@
 package sensor;
 
 import java.net.URL;
+import java.util.List;
 
 import javax.jws.WebService;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
-@WebService(wsdlLocation = "Sensor.wsdl", serviceName = "Sensor", portName = "SensorSOAP", targetNamespace = "http://sensor/", name = "Sensor")
+@WebService(wsdlLocation = "Sensor.wsdl", serviceName = "SensorService", portName = "SensorSOAP", targetNamespace = "http://sensor/", name = "Sensor")
 public class SensorImpl implements Sensor {
 
     public long id;
@@ -49,7 +50,8 @@ public class SensorImpl implements Sensor {
 
     @Override
     public boolean addSensor(SensorObj sensor) {
-        sensorlist.getList().add(sensor);
+        List<SensorObj> sl = sensorlist.getList();
+        sl.add(sensor);
         return true;
     }
 
@@ -154,7 +156,7 @@ public class SensorImpl implements Sensor {
         Sensor ref = null;
         try {
             ref = new Sensor_Service(new URL(sensor.getLocation() + "sensor?wsdl"), new QName("http://sensor/",
-                    "sensor")).getSensorSOAP();
+                    "SensorService")).getSensorSOAP();
         } catch (Exception e) {
             removeFromDatabase(sensor);
         }
