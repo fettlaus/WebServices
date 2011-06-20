@@ -2,7 +2,6 @@ package sensor;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import javax.jws.WebService;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
@@ -15,8 +14,6 @@ public class SensorImpl implements Sensor {
     String existing;
     int[] directions;
     SensorList sensorlist = new SensorList();
-    // Liste ueber http://ip.address:port/
-    ArrayList<String> sensorstrings = new ArrayList<String>();
     Sensor coordinator;
     
     /**
@@ -29,7 +26,6 @@ public class SensorImpl implements Sensor {
         this.name = name;
         this.existing = existingsensor;
         this.directions = directions;
-        sensorstrings.add("name");
     }
     
     private Sensor toSensor(SensorObj sensor) throws MalformedURLException{
