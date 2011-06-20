@@ -4,7 +4,6 @@ import java.net.URL;
 
 import javax.jws.WebService;
 import javax.xml.namespace.QName;
-import javax.xml.ws.Endpoint;
 import javax.xml.ws.Holder;
 
 @WebService(wsdlLocation = "Sensor.wsdl", serviceName = "Sensor", portName = "SensorSOAP", targetNamespace = "http://sensor/", name = "Sensor")
@@ -18,7 +17,6 @@ public class SensorImpl implements Sensor {
     SensorList sensorlist = new SensorList();
     long sensorlistversion = 0;
     SensorObj coordinator;
-    Endpoint endpoint;
 
     /**
      * @param port Port to run on
@@ -35,7 +33,6 @@ public class SensorImpl implements Sensor {
         if (bootstrapSensor == null) {
             iscoordinator = true;
         }
-        run();
     }
 
     @Override
@@ -118,7 +115,7 @@ public class SensorImpl implements Sensor {
         }
     }
 
-    private void run() {
+    void run() {
         //bootstrap
         SensorObj boot = new SensorObj();
         boot.setLocation(bootstrapSensor);
@@ -149,7 +146,6 @@ public class SensorImpl implements Sensor {
         }
         // shutdown
         toSensor(coordinator).removeSensor(myObj);
-        endpoint.stop();
     }
 
     // Webservice functions
@@ -163,10 +159,6 @@ public class SensorImpl implements Sensor {
             removeFromDatabase(sensor);
         }
         return ref;
-    }
-
-    void setEndpoint(Endpoint endpoint) {
-        this.endpoint = endpoint;
     }
 
     // Koordinator functions
