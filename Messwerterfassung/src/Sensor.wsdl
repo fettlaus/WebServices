@@ -44,6 +44,7 @@
   	<wsdl:part name="coordinator" type="sensor:SensorObj"></wsdl:part>
   </wsdl:message>
   <wsdl:message name="setCoordinatorResponse">
+        <wsdl:part name="success" type="xsd:boolean"></wsdl:part>
   </wsdl:message>
   <wsdl:portType name="Sensor">
     <wsdl:operation name="getSensorList">
@@ -118,7 +119,7 @@
   </wsdl:binding>
   <wsdl:service name="Sensor">
     <wsdl:port binding="sensor:SensorSOAP" name="SensorSOAP">
-      <soap:address location="http://www.example.org/"/>
+      <soap:address location="http://sensor/"/>
     </wsdl:port>
   </wsdl:service>
 </wsdl:definitions>
