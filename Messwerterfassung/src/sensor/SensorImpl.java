@@ -14,7 +14,7 @@ public class SensorImpl implements Sensor {
     SensorObj myObj = new SensorObj();
     boolean iscoordinator = false;
     boolean running = true;
-    String existing;
+    String bootstrapSensor;
     SensorList sensorlist = new SensorList();
     long sensorlistversion = 0;
     SensorObj coordinator;
@@ -23,16 +23,16 @@ public class SensorImpl implements Sensor {
     /**
      * @param port Port to run on
      * @param name Name of this Sensor
-     * @param existingsensor Some already existing sensor
+     * @param bootstrapSensor Some already existing sensor
      * @param directions The scales we want to write on
      */
-    SensorImpl(String name, String existingsensor, Directions directions) {
+    SensorImpl(String name, String bootstrap, Directions directions) {
 
-        existing = existingsensor;
+        this.bootstrapSensor = bootstrap;
         myObj.setLocation(name);
         myObj.setId(id);
         myObj.setDirection(directions);
-        if (existingsensor == null) {
+        if (bootstrapSensor == null) {
             iscoordinator = true;
         }
         run();
@@ -70,8 +70,8 @@ public class SensorImpl implements Sensor {
 
     @Override
     public void getDatabase(Holder<SensorList> list, Holder<Long> version) {
-        // TODO Auto-generated method stub
-
+        list.value = sensorlist;
+        version.value = sensorlistversion;
     }
 
     @Override
@@ -119,8 +119,22 @@ public class SensorImpl implements Sensor {
     }
 
     private void run() {
+        //bootstrap
+        SensorObj boot = new SensorObj();
+        boot.setLocation(bootstrapSensor);
+ 
         // startup
+        if(iscoordinator)
+            coordinator = myObj;
+        else
+            coordinator = toSensor(boot).getCoordinator();
         toSensor(coordinator).addSensor(myObj);
+        
+        Holder<SensorList> l = new Holder<SensorList>();
+        Holder<Long> v = new Holder<Long>();
+        toSensor(coordinator).getDatabase(l, v);
+        sensorlist = l.value;
+        sensorlistversion = v.value;
 
         while (running) {
             if (iscoordinator) {
