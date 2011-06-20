@@ -43,7 +43,8 @@ public class SensorMain {
 //    		 System.out.println(anzeigeCus[i]);;
 //    	 }
          Sensor sensor = new SensorImpl(sensorName, existingSensor, anzeigeCus);
-         Endpoint endpoint =
+         @SuppressWarnings("unused")
+        Endpoint endpoint =
              Endpoint.publish("http://"+ host +":"+ port +"/sensor", sensor);
          
          
