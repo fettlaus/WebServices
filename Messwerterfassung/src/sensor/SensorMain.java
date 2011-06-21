@@ -41,7 +41,7 @@ public class SensorMain {
 //         System.out.println(sensorName + " " + existingSensor);
 //     	 System.out.println(directions.isNE() + " " + directions.isSE() + " " + directions.isSW() + " " + directions.isSE());
 
-         SensorImpl sensor = new SensorImpl(sensorName, existingSensor, directions);
+         SensorImpl sensor = new SensorImpl("http://localhost:9999/",sensorName, existingSensor, directions);
          Endpoint endpoint = Endpoint.create(sensor);
          endpoint.publish("http://"+ sensorName +"sensor");
          sensor.run();
