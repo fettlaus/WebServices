@@ -43,7 +43,7 @@ public class SensorMain {
 
          SensorImpl sensor = new SensorImpl("http://localhost:9999/",sensorName, existingSensor, directions);
          Endpoint endpoint = Endpoint.create(sensor);
-         endpoint.publish("http://"+ sensorName +"sensor");
+         endpoint.publish(sensorName +"sensor");
          sensor.run();
          endpoint.stop();
          
