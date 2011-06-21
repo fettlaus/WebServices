@@ -63,10 +63,10 @@
   <wsdl:message name="getDisplayResponse">
   	<wsdl:part name="display" type="xsd:anyURI"></wsdl:part>
   </wsdl:message>
-  <wsdl:message name="activateDisplayRequest">
-  	<wsdl:part name="direction" type="xsd:int"></wsdl:part>
+  <wsdl:message name="setDisplayRequest">
+  	<wsdl:part name="direction" type="sensor:Directions"></wsdl:part>
   </wsdl:message>
-  <wsdl:message name="activateDisplayResponse">
+  <wsdl:message name="setDisplayResponse">
   	<wsdl:part name="success" type="xsd:boolean"></wsdl:part>
   </wsdl:message>
   <wsdl:message name="addDatabaseRequest">
@@ -87,6 +87,12 @@
   	<wsdl:part name="sensor" type="sensor:SensorObj"></wsdl:part>
   </wsdl:message>
   <wsdl:message name="removeSensorResponse">
+  	<wsdl:part name="success" type="xsd:boolean"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="disableDisplayRequest">
+  	<wsdl:part name="direction" type="xsd:int"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="disableDisplayResponse">
   	<wsdl:part name="success" type="xsd:boolean"></wsdl:part>
   </wsdl:message>
   <wsdl:portType name="Sensor">
@@ -118,9 +124,9 @@
     	<wsdl:input message="sensor:getDisplayRequest"></wsdl:input>
     	<wsdl:output message="sensor:getDisplayResponse"></wsdl:output>
     </wsdl:operation>
-    <wsdl:operation name="activateDisplay">
-    	<wsdl:input message="sensor:activateDisplayRequest"></wsdl:input>
-    	<wsdl:output message="sensor:activateDisplayResponse"></wsdl:output>
+    <wsdl:operation name="setDisplay">
+    	<wsdl:input message="sensor:setDisplayRequest"></wsdl:input>
+    	<wsdl:output message="sensor:setDisplayResponse"></wsdl:output>
     </wsdl:operation>
     <wsdl:operation name="addDatabase">
     	<wsdl:input message="sensor:addDatabaseRequest"></wsdl:input>
@@ -133,7 +139,7 @@
     <wsdl:operation name="removeSensor">
     	<wsdl:input message="sensor:removeSensorRequest"></wsdl:input>
     	<wsdl:output message="sensor:removeSensorResponse"></wsdl:output>
-    </wsdl:operation>
+    </wsdl:operation>
   </wsdl:portType>
   <wsdl:binding name="SensorSOAP" type="sensor:Sensor">
 
@@ -223,9 +229,9 @@
   			<soap:body use="literal" namespace="http://sensor/" />
   		</wsdl:output>
   	</wsdl:operation>
-  	<wsdl:operation name="activateDisplay">
+  	<wsdl:operation name="setDisplay">
 
-  		<soap:operation soapAction="http://sensor/activateDisplay" />
+  		<soap:operation soapAction="http://sensor/setDisplay" />
   		<wsdl:input>
 
   			<soap:body use="literal" namespace="http://sensor/" />
@@ -271,6 +277,7 @@
   			<soap:body use="literal" namespace="http://sensor/" />
   		</wsdl:output>
   	</wsdl:operation>
+
   </wsdl:binding>
   <wsdl:service name="SensorService">
     <wsdl:port binding="sensor:SensorSOAP" name="SensorSOAP">

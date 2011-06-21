@@ -1,13 +1,20 @@
 package sensor;
 
+import hawmetering.HAWMeteringWebservice;
+import hawmetering.HAWMeteringWebserviceService;
+
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
+import java.util.logging.Level;
 
 import javax.jws.WebService;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
-@WebService(wsdlLocation = "Sensor.wsdl", serviceName = "SensorService", portName = "SensorSOAP", targetNamespace = "http://sensor/", name = "Sensor",endpointInterface="sensor.Sensor")
+@WebService(wsdlLocation = "Sensor.wsdl", serviceName = "SensorService", portName = "SensorSOAP", targetNamespace = "http://sensor/", name = "Sensor", endpointInterface = "sensor.Sensor")
 public class SensorImpl implements Sensor {
 
     public long id;
@@ -18,6 +25,10 @@ public class SensorImpl implements Sensor {
     SensorList sensorlist = new SensorList();
     long sensorlistversion = 0;
     SensorObj coordinator;
+    Directions activeDirections = new Directions();
+    SensorLog l;
+    String meterURI;
+    HAWMeteringWebservice meter;
 
     /**
      * @param port Port to run on
@@ -25,33 +36,47 @@ public class SensorImpl implements Sensor {
      * @param bootstrapSensor Some already existing sensor
      * @param directions The scales we want to write on
      */
-    SensorImpl(String name, String bootstrap, Directions directions) {
+    SensorImpl(String meter, String name, String bootstrap, Directions directions) {
+        l = new SensorLog("sensor.SensorImpl", null);
+        bootstrapSensor = bootstrap;
 
-        this.bootstrapSensor = bootstrap;
+        Random rnd = new Random();
+        id = rnd.nextLong();
+
+        l.log(Level.FINE, "Starting with ID " + id);
+
         myObj.setLocation(name);
         myObj.setId(id);
         myObj.setDirection(directions);
+
+        meterURI = meter;
         if (bootstrapSensor == null) {
             iscoordinator = true;
         }
+
     }
 
     @Override
-    public boolean activateDisplay(int direction) {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    @Override
-    public boolean addDatabase(SensorObj sensor, long version) {
-        // TODO Auto-generated method stub
+    public synchronized boolean addDatabase(SensorObj sensor, long version) {
+        if (sensorlistversion == version) {
+            l.log(Level.FINE, "Add sensor. DBVersion(" + sensorlistversion + ")");
+            sensorlist.getList().add(sensor);
+            sensorlistversion++;
+        } else {
+            l.log(Level.INFO, "inconsistent database");
+            refreshDatabase();
+        }
         return false;
     }
 
     @Override
     public boolean addSensor(SensorObj sensor) {
-        sensorlist.getList().add(sensor);
-        return true;
+        if (iscoordinator) {
+            addToDatabase(sensor);
+            return true;
+        }
+        return false;
+
     }
 
     @Override
@@ -62,8 +87,7 @@ public class SensorImpl implements Sensor {
 
     @Override
     public SensorObj getCoordinator() {
-        // TODO Auto-generated method stub
-        return null;
+        return coordinator;
     }
 
     @Override
@@ -74,25 +98,40 @@ public class SensorImpl implements Sensor {
 
     @Override
     public String getDisplay() {
-        // TODO Auto-generated method stub
-        return null;
+        return meterURI;
     }
 
     @Override
     public boolean ping() {
-        // TODO Auto-generated method stub
+        // TODO
+        // if(activeDirections.isNE())
+        // / meter.
+
         return false;
     }
 
     @Override
-    public boolean removeDatabase(SensorObj sensor, long version) {
-        // TODO Auto-generated method stub
+    public synchronized boolean removeDatabase(SensorObj sensor, long version) {
+        if (sensorlistversion == version) {
+            l.log(Level.FINE, "Removing sensor. DBVersion(" + sensorlistversion + ")");
+            
+            List<SensorObj> list = sensorlist.getList();           
+            while(list.remove(sensor));                      
+            sensorlistversion++;
+        } else {
+            l.log(Level.INFO, "inconsistent database");
+            refreshDatabase();
+        }
+        sensorlistversion++;
         return false;
     }
 
     @Override
     public boolean removeSensor(SensorObj sensor) {
-        // TODO Auto-generated method stub
+        if (iscoordinator) {
+            removeFromDatabase(sensor);
+            return true;
+        }
         return false;
     }
 
@@ -104,36 +143,81 @@ public class SensorImpl implements Sensor {
 
     }
 
+    @Override
+    public boolean setDisplay(Directions direction) {
+        activeDirections = direction;
+        return false;
+    }
+
+    private void addToDatabase(SensorObj customer) {
+        List<SensorObj> temp = new LinkedList<SensorObj>();
+        temp.addAll(sensorlist.getList());
+        for (SensorObj sensor : temp) {
+            toSensor(sensor).addDatabase(customer, sensorlistversion);
+        }
+    }
+
+    private void refreshDatabase() {
+        l.log(Level.INFO, "Refreshing database");
+        Holder<SensorList> list = new Holder<SensorList>();
+        Holder<Long> version = new Holder<Long>();
+        toSensor(coordinator).getDatabase(list, version);
+        sensorlist = list.value;
+        sensorlistversion = version.value;
+    }
+
+    // Webservice functions
+
     private void removeFromDatabase(SensorObj victim) {
-        sensorlist.getList().remove(victim);
-        sensorlistversion += 1;
-        for (SensorObj sensor : sensorlist.getList()) {
+        List<SensorObj> temp = new LinkedList<SensorObj>();
+        temp.addAll(sensorlist.getList());
+        for (SensorObj sensor : temp) {
             try {
-                toSensor(sensor).removeDatabase(victim, sensorlistversion - 1);
+                toSensor(sensor).removeDatabase(victim, sensorlistversion);
             } catch (Exception e) {
                 removeFromDatabase(sensor);
             }
         }
     }
 
+    private Sensor toSensor(SensorObj sensor) {
+        Sensor ref = null;
+        try {
+            ref = new SensorService(new URL(sensor.getLocation() + "sensor?wsdl"), new QName("http://sensor/",
+                    "SensorService")).getSensorSOAP();
+        } catch (Exception e) {
+            removeFromDatabase(sensor);
+        }
+        return ref;
+    }
+
     void run() {
-        //bootstrap
-        SensorObj boot = new SensorObj();
-        boot.setLocation(bootstrapSensor);
- 
-        // startup
-        if(iscoordinator)
+
+        String m;
+        if (iscoordinator) {
+            // starting as coordinator
             coordinator = myObj;
-        else
+            m = meterURI;
+            sensorlist.getList().add(myObj);
+        } else {
+            // starting from bootstrap
+            SensorObj boot = new SensorObj();
+            boot.setLocation(bootstrapSensor);
+
             coordinator = toSensor(boot).getCoordinator();
-        Sensor s = toSensor(coordinator);
-        s.addSensor(myObj);
-        
-        Holder<SensorList> l = new Holder<SensorList>();
-        Holder<Long> v = new Holder<Long>();
-        toSensor(coordinator).getDatabase(l, v);
-        sensorlist = l.value;
-        sensorlistversion = v.value;
+            m = toSensor(boot).getDisplay();
+            toSensor(coordinator).addSensor(myObj);
+            refreshDatabase();
+        }
+
+        try {
+            meter = new HAWMeteringWebserviceService(new URL(m + "hawmetering/nw?wsdl"), new QName(
+                    "http://hawmetering/", "HAWMeteringWebserviceService")).getHAWMeteringWebservicePort();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+            l.log(Level.SEVERE, "No meter reachable");
+            return;
+        }
 
         while (running) {
             if (iscoordinator) {
@@ -148,19 +232,6 @@ public class SensorImpl implements Sensor {
         }
         // shutdown
         toSensor(coordinator).removeSensor(myObj);
-    }
-
-    // Webservice functions
-
-    private Sensor toSensor(SensorObj sensor) {
-        Sensor ref = null;
-        try {
-            ref = new SensorService(new URL(sensor.getLocation() + "sensor?wsdl"), new QName("http://sensor/",
-                    "SensorService")).getSensorSOAP();
-        } catch (Exception e) {
-            removeFromDatabase(sensor);
-        }
-        return ref;
     }
 
     // Koordinator functions

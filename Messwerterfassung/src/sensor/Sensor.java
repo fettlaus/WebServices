@@ -102,11 +102,11 @@ public interface Sensor {
      * @return
      *     returns boolean
      */
-    @WebMethod(action = "http://sensor/activateDisplay")
+    @WebMethod(action = "http://sensor/setDisplay")
     @WebResult(name = "success", partName = "success")
-    public boolean activateDisplay(
+    public boolean setDisplay(
         @WebParam(name = "direction", partName = "direction")
-        int direction);
+        Directions direction);
 
     /**
      * 
