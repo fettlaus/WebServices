@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:srv="http://server/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="server" targetNamespace="http://server/">
+    <wsdl:types><xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://server/">
+	<xsd:element name="Nachricht" type="xsd:int"></xsd:element></xsd:schema></wsdl:types>
+    <wsdl:message name="msgRequest">
+    <wsdl:part name="msgRequest" type="xsd:int"/>
+  </wsdl:message>
+  <wsdl:message name="msgResponse">
+  </wsdl:message>
+  <wsdl:portType name="server">
+    <wsdl:operation name="msg">
+      <wsdl:input message="srv:msgRequest"/>
+      <wsdl:output message="srv:msgResponse"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="serverSOAP" type="srv:server">
+
+  	<soap:binding style="rpc"
+  		transport="http://schemas.xmlsoap.org/soap/http" />
+  	<wsdl:operation name="msg">
+
+  		<soap:operation soapAction="http://server/msg" />
+  		<wsdl:input>
+
+  			<soap:body use="literal" namespace="http://server/" />
+  		</wsdl:input>
+  		<wsdl:output>
+
+  			<soap:body use="literal" namespace="http://server/" />
+  		</wsdl:output>
+  	</wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="server_service">
+    <wsdl:port binding="srv:serverSOAP" name="serverSOAP">
+      <soap:address location="http://server/"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>
