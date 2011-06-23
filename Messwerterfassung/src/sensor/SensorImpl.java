@@ -143,7 +143,7 @@ public class SensorImpl implements Sensor {
     @Override
     public boolean removeSensor(SensorObj sensor) {
         if (iscoordinator) {
-            removeFromDatabase(sensor);
+            setDefunct(sensor);
             return true;
         }
         return false;
@@ -163,75 +163,55 @@ public class SensorImpl implements Sensor {
         return false;
     }
 
-    private void removeFromDatabase(SensorObj customer) {
-        //Iteratively remove defect sensors
-        List<SensorObj> temp = new LinkedList<SensorObj>();
-        LinkedList<SensorObj> removants = new LinkedList<SensorObj>();
-        SensorObj toremove;
-        removants.add(customer);
-        temp.addAll(sensorlist.getList());
-        while(!removants.isEmpty()){
-            // get a defect Sensor
-            toremove = removants.pop();
-            for (SensorObj sensor : temp) {
-                // if it is not us
-                if(sensor.getLocation()!=myObj.getLocation()){
-                    try {
-                        toSensor(sensor).removeDatabase(toremove, sensorlistversion);
-                    } catch (Exception e) {
-                        // remove sensor if it didn't respond to our removal request
-                        removants.add(sensor);
-                    }
-                }
-                
-            }
-            sensorlistversion++;
-            while(sensorlist.getList().remove(toremove));
-            
-        }
-        
-    }
-
     private void refreshDatabase() {
         l.log(Level.INFO, "Refreshing database");
         Holder<SensorList> list = new Holder<SensorList>();
         Holder<Long> version = new Holder<Long>();
         try {
             toSensor(coordinator).getDatabase(list, version);
-        } catch (ConnectionException e) {
-            // TODO: What if we lost the coordinator?
-            e.printStackTrace();
+            sensorlist = list.value;
+            sensorlistversion = version.value;
+        } catch (Exception e) {
+            //TODO startElection();
         }
-        sensorlist = list.value;
-        sensorlistversion = version.value;
     }
 
     // Webservice functions
 
-    private void addToDatabase(SensorObj victim) {
+    private synchronized void addToDatabase(SensorObj client) {
         List<SensorObj> temp = new LinkedList<SensorObj>();
         temp.addAll(sensorlist.getList());
         for (SensorObj sensor : temp) {
-            try {
-                toSensor(sensor).removeDatabase(victim, sensorlistversion);
-            } catch (Exception e) {
-                removeFromDatabase(sensor);
-            }
+                try {
+                    toSensor(sensor).addDatabase(client, sensorlistversion);
+                } catch (ConnectionException e) {
+                    ;
+                }
         }
+        sensorlistversion++;
+        sensorlist.getList().add(client);
     }
 
-    private Sensor toSensor(SensorObj sensor) throws ConnectionException {
+    private Sensor toSensor(SensorObj sensor) throws ConnectionException{
         Sensor ref = null;
         try {
             ref = new SensorService(new URL(sensor.getLocation() + "sensor?wsdl"), new QName("http://sensor/",
                     "SensorService")).getSensorSOAP();
         } catch (Exception e) {
+            setDefunct(sensor);
             throw new ConnectionException();
         }
         return ref;
     }
     
-    private void cleanDatabase(){
+    private void setDefunct(SensorObj sensor){
+        for(SensorObj s : sensorlist.getList()){
+            if(s.getLocation().equals(sensor.getLocation()))
+                    defunctsensors.add(s);
+        }
+    }
+    
+    private synchronized void cleanDatabase(){
         List<SensorObj> temp = new LinkedList<SensorObj>();
         SensorObj toremove;
         for(Iterator<SensorObj> i = defunctsensors.iterator();i.hasNext();){
@@ -245,8 +225,7 @@ public class SensorImpl implements Sensor {
                     try {
                         toSensor(sensor).removeDatabase(toremove, sensorlistversion);
                     } catch (Exception e) {
-                        // remove sensor if it didn't respond to our removal request
-                        defunctsensors.add(sensor);
+                        ;
                     }
                 }               
             }
