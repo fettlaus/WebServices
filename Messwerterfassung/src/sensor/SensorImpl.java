@@ -108,8 +108,26 @@ public class SensorImpl implements Sensor {
 
     @Override
     public boolean election() {
-        // TODO Auto-generated method stub
-        return false;
+        for(SensorObj s : sensorlist.getList()){
+            if(s.getId()>myObj.getId()){
+                try{
+                    toSensor(s).election();
+                    return false;
+                }catch(Exception e){
+                    ;
+                }
+            }
+        }
+        // I won! set coordinator
+        iscoordinator = true;
+        for(SensorObj s : sensorlist.getList()){
+            try {
+                toSensor(s).setCoordinator(myObj);
+            } catch (ConnectionException e) {
+                ;
+            }
+        }
+        return true;
     }
 
     @Override
@@ -130,11 +148,9 @@ public class SensorImpl implements Sensor {
 
     @Override
     public boolean ping() {
-        // TODO
-        // if(activeDirections.isNE())
-        // / meter.
         value += rnd.nextInt()%10;
         value = (value < 0)? (value*-1) : value;
+        try{
         if(activeDirections.isNE())
             meterNE.setValue(value);
         if(activeDirections.isSE())
@@ -143,9 +159,11 @@ public class SensorImpl implements Sensor {
             meterSW.setValue(value);
         if(activeDirections.isNW())
             meterNW.setValue(value);
-
-        // TODO needs failsafe
-        return false;
+        }catch(Exception e){
+            running = false;
+            return false;
+        }
+        return true;
     }
 
     @Override
@@ -179,6 +197,7 @@ public class SensorImpl implements Sensor {
 
     @Override
     public boolean setCoordinator(SensorObj coordinator) {
+        iscoordinator = false;
         this.coordinator = coordinator;
         return true;
 
