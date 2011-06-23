@@ -17,6 +17,25 @@ import javax.xml.ws.Holder;
 @WebService(wsdlLocation = "Sensor.wsdl", serviceName = "SensorService", portName = "SensorSOAP", targetNamespace = "http://sensor/", name = "Sensor", endpointInterface = "sensor.Sensor")
 public class SensorImpl implements Sensor {
 
+    class ConnectionException extends Exception{
+        private static final long serialVersionUID = -5728422902093458359L;
+        
+    }
+    
+    class mySensor extends SensorObj{
+        @Override
+        public boolean equals(Object obj) {
+            try{
+                SensorObj test = (SensorObj) obj;
+                if(test.getLocation().equals(location))
+                    return true;
+            }catch (Exception e){
+                return false;
+            }
+            return false;
+        }
+        
+    }
     public long id;
     SensorObj myObj = new SensorObj();
     boolean iscoordinator = false;
@@ -155,26 +174,52 @@ public class SensorImpl implements Sensor {
         return false;
     }
 
-    private void addToDatabase(SensorObj customer) {
+    private void removeFromDatabase(SensorObj customer) {
+        //Iteratively remove defect sensors
         List<SensorObj> temp = new LinkedList<SensorObj>();
+        LinkedList<SensorObj> removants = new LinkedList<SensorObj>();
+        SensorObj toremove;
+        removants.add(customer);
         temp.addAll(sensorlist.getList());
-        for (SensorObj sensor : temp) {
-            toSensor(sensor).addDatabase(customer, sensorlistversion);
+        while(!removants.isEmpty()){
+            // get a defect Sensor
+            toremove = removants.pop();
+            for (SensorObj sensor : temp) {
+                // if it is not us
+                if(sensor.getLocation()!=myObj.getLocation()){
+                    try {
+                        toSensor(sensor).removeDatabase(toremove, sensorlistversion);
+                    } catch (Exception e) {
+                        // remove sensor if it didn't respond to our removal request
+                        removants.add(sensor);
+                    }
+                }
+                
+            }
+            sensorlistversion++;
+            //TODO: remove sensor from self
+            
         }
+        
     }
 
     private void refreshDatabase() {
         l.log(Level.INFO, "Refreshing database");
         Holder<SensorList> list = new Holder<SensorList>();
         Holder<Long> version = new Holder<Long>();
-        toSensor(coordinator).getDatabase(list, version);
+        try {
+            toSensor(coordinator).getDatabase(list, version);
+        } catch (ConnectionException e) {
+            // TODO: What if we lost the coordinator?
+            e.printStackTrace();
+        }
         sensorlist = list.value;
         sensorlistversion = version.value;
     }
 
     // Webservice functions
 
-    private void removeFromDatabase(SensorObj victim) {
+    private void addToDatabase(SensorObj victim) {
         List<SensorObj> temp = new LinkedList<SensorObj>();
         temp.addAll(sensorlist.getList());
         for (SensorObj sensor : temp) {
@@ -186,13 +231,13 @@ public class SensorImpl implements Sensor {
         }
     }
 
-    private Sensor toSensor(SensorObj sensor) {
+    private Sensor toSensor(SensorObj sensor) throws ConnectionException {
         Sensor ref = null;
         try {
             ref = new SensorService(new URL(sensor.getLocation() + "sensor?wsdl"), new QName("http://sensor/",
                     "SensorService")).getSensorSOAP();
         } catch (Exception e) {
-            removeFromDatabase(sensor);
+            throw new ConnectionException();
         }
         return ref;
     }
@@ -210,10 +255,15 @@ public class SensorImpl implements Sensor {
             SensorObj boot = new SensorObj();
             boot.setLocation(bootstrapSensor);
 
-            coordinator = toSensor(boot).getCoordinator();
-            m = toSensor(boot).getDisplay();
-            // add us first, to get updates
-            toSensor(coordinator).addSensor(myObj);
+            try {
+                coordinator = toSensor(boot).getCoordinator();
+                m = toSensor(boot).getDisplay();
+                // add us first, to get updates
+                toSensor(coordinator).addSensor(myObj);
+            } catch (ConnectionException e) {
+                e.printStackTrace();
+                return;
+            }
             refreshDatabase();
         }
 
@@ -229,7 +279,12 @@ public class SensorImpl implements Sensor {
         while (running) {
             if (iscoordinator) {
                 for (SensorObj sensor : sensorlist.getList()) {
-                    toSensor(sensor).ping();
+                    try {
+                        toSensor(sensor).ping();
+                    } catch (ConnectionException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
                 }
             } else {
                 // check for ping
@@ -238,7 +293,12 @@ public class SensorImpl implements Sensor {
 
         }
         // shutdown
-        toSensor(coordinator).removeSensor(myObj);
+        try {
+            toSensor(coordinator).removeSensor(myObj);
+        } catch (ConnectionException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     // Koordinator functions
