@@ -318,7 +318,7 @@ public class SensorImpl implements Sensor {
                     "http://hawmetering/", "HAWMeteringWebserviceService")).getHAWMeteringWebservicePort();
             meterNW = new HAWMeteringWebserviceService(new URL(m + "hawmetering/nw?wsdl"), new QName(
                     "http://hawmetering/", "HAWMeteringWebserviceService")).getHAWMeteringWebservicePort();
-        } catch (MalformedURLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             l.log(Level.SEVERE, "No meter reachable");
             return;
