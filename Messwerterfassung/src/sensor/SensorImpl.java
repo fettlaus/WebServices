@@ -145,6 +145,7 @@ public class SensorImpl implements Sensor {
         if(activeDirections.isNW())
             meterNW.setValue(value);
 
+        // TODO needs failsafe
         return false;
     }
 
