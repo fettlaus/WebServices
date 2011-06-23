@@ -37,6 +37,7 @@ public class SensorImpl implements Sensor {
     //DB related
     SensorList sensorlist = new SensorList();
     LinkedHashSet<SensorObj> defunctsensors = new LinkedHashSet<SensorObj>();
+    LinkedHashSet<SensorObj> newsensors = new LinkedHashSet<SensorObj>();
     long sensorlistversion = 0;
     
     //Environment
@@ -49,9 +50,9 @@ public class SensorImpl implements Sensor {
     SensorLog l;
 
     /**
-     * @param port Port to run on
+     * @param meter URI to HAWMeter
      * @param name Name of this Sensor
-     * @param bootstrapSensor Some already existing sensor
+     * @param bootstrap Some already existing sensor
      * @param directions The scales we want to write on
      */
     SensorImpl(String meter, String name, String bootstrap, Directions directions) {
@@ -94,7 +95,7 @@ public class SensorImpl implements Sensor {
     @Override
     public boolean addSensor(SensorObj sensor) {
         if (iscoordinator) {
-            addToDatabase(sensor);
+            newsensors.add(sensor);
             return true;
         }
         return false;
@@ -183,24 +184,28 @@ public class SensorImpl implements Sensor {
             sensorlist = list.value;
             sensorlistversion = version.value;
         } catch (Exception e) {
-            //TODO startElection();
+            needElection = true;
         }
     }
 
     // Webservice functions
 
-    private synchronized void addToDatabase(SensorObj client) {
-        for (SensorObj sensor : sensorlist.getList()) {
-            if(client.getLocation() != myObj.getLocation()){
-                try {
-                    toSensor(sensor).addDatabase(client, sensorlistversion);
-                } catch (ConnectionException e) {
-                    ;
+    private synchronized void addToDatabase() {
+        for(Iterator<SensorObj> i = newsensors.iterator();i.hasNext();){
+            SensorObj s = i.next();
+            i.remove();
+            for (SensorObj sensor : sensorlist.getList()) {
+                if(sensor.getLocation() != myObj.getLocation()){
+                    try {
+                        toSensor(sensor).addDatabase(s, sensorlistversion);
+                    } catch (ConnectionException e) {
+                        ;
+                    }
                 }
             }
+            sensorlistversion++;
+            sensorlist.getList().add(s);
         }
-        sensorlistversion++;
-        sensorlist.getList().add(client);
     }
 
     private Sensor toSensor(SensorObj sensor) throws ConnectionException{
@@ -267,7 +272,7 @@ public class SensorImpl implements Sensor {
                 e.printStackTrace();
                 return;
             }
-            refreshDatabase();
+            //refreshDatabase();
         }
 
         try {
