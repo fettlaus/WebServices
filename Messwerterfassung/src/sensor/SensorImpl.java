@@ -23,6 +23,8 @@ public class SensorImpl implements Sensor {
         private static final long serialVersionUID = -5728422902093458359L;
         
     }
+    //Config
+    int maxTimeout = 600;
     
     // Status vars
     boolean inconsistent = true;
@@ -52,6 +54,7 @@ public class SensorImpl implements Sensor {
     HAWMeteringWebservice meterNW;
     
     SensorLog l;
+    long timeout;
     Random rnd = new Random();
 
     /**
@@ -108,6 +111,7 @@ public class SensorImpl implements Sensor {
 
     @Override
     public boolean election() {
+        needElection = false;
         for(SensorObj s : sensorlist.getList()){
             if(s.getId()>myObj.getId()){
                 try{
@@ -148,6 +152,10 @@ public class SensorImpl implements Sensor {
 
     @Override
     public boolean ping() {
+        if(timeout < System.currentTimeMillis()){
+            needElection = true;
+        }
+        timeout = System.currentTimeMillis() + maxTimeout;
         value += rnd.nextInt()%10;
         value = (value < 0)? (value*-1) : value;
         try{
@@ -301,7 +309,7 @@ public class SensorImpl implements Sensor {
                 e.printStackTrace();
                 return;
             }
-            //refreshDatabase();
+            refreshDatabase();
         }
 
         try {
@@ -335,15 +343,12 @@ public class SensorImpl implements Sensor {
             // common
 
         }
-        // shutdown
+        // try graceful shutdown
         try {
             toSensor(coordinator).removeSensor(myObj);
         } catch (ConnectionException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            return;
         }
     }
-
-    // Koordinator functions
 
 }
