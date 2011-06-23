@@ -58,8 +58,8 @@ public class SensorImpl implements Sensor {
 
     @Override
     public synchronized boolean addDatabase(SensorObj sensor, long version) {
-        //client-only function
-        if(!iscoordinator){
+        // client-only function
+        if (!iscoordinator) {
             if (sensorlistversion == version) {
                 l.log(Level.FINE, "Add sensor. DBVersion(" + sensorlistversion + ")");
                 sensorlist.getList().add(sensor);
@@ -115,17 +115,19 @@ public class SensorImpl implements Sensor {
 
     @Override
     public synchronized boolean removeDatabase(SensorObj sensor, long version) {
-        if(!iscoordinator){
+        if (!iscoordinator) {
             if (sensorlistversion == version) {
                 l.log(Level.FINE, "Removing sensor. DBVersion(" + sensorlistversion + ")");
-                
-                List<SensorObj> list = sensorlist.getList();           
-                while(list.remove(sensor));                      
+
+                List<SensorObj> list = sensorlist.getList();
+                while (list.remove(sensor)) {
+                    ;
+                }
                 sensorlistversion++;
                 return true;
             }
             l.log(Level.INFO, "inconsistent database");
-            refreshDatabase();            
+            refreshDatabase();
         }
         return false;
     }
