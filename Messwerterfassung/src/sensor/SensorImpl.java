@@ -179,9 +179,7 @@ public class SensorImpl implements Sensor {
     // Webservice functions
 
     private synchronized void addToDatabase(SensorObj client) {
-        List<SensorObj> temp = new LinkedList<SensorObj>();
-        temp.addAll(sensorlist.getList());
-        for (SensorObj sensor : temp) {
+        for (SensorObj sensor : sensorlist.getList()) {
             if(client.getLocation() != myObj.getLocation()){
                 try {
                     toSensor(sensor).addDatabase(client, sensorlistversion);
