@@ -44,7 +44,11 @@ public class SensorImpl implements Sensor {
     String bootstrapSensor;
     SensorObj coordinator;
     String meterURI;
-    HAWMeteringWebservice meter;
+    HAWMeteringWebservice meterNE;
+    HAWMeteringWebservice meterSE;
+    HAWMeteringWebservice meterSW;
+    HAWMeteringWebservice meterNW;
+    int value = 0;
     
     Directions activeDirections = new Directions();
     SensorLog l;
@@ -129,6 +133,17 @@ public class SensorImpl implements Sensor {
         // TODO
         // if(activeDirections.isNE())
         // / meter.
+        Random rnd = new Random();
+        value += rnd.nextInt()%10;
+        value = (value < 0)? (value*-1) : value;
+        if(activeDirections.isNE())
+            meterNE.setValue(value);
+        if(activeDirections.isSE())
+            meterSE.setValue(value);
+        if(activeDirections.isSW())
+            meterSW.setValue(value);
+        if(activeDirections.isNW())
+            meterNW.setValue(value);
 
         return false;
     }
@@ -276,7 +291,13 @@ public class SensorImpl implements Sensor {
         }
 
         try {
-            meter = new HAWMeteringWebserviceService(new URL(m + "hawmetering/nw?wsdl"), new QName(
+            meterNE = new HAWMeteringWebserviceService(new URL(m + "hawmetering/no?wsdl"), new QName(
+                    "http://hawmetering/", "HAWMeteringWebserviceService")).getHAWMeteringWebservicePort();
+            meterSE = new HAWMeteringWebserviceService(new URL(m + "hawmetering/so?wsdl"), new QName(
+                    "http://hawmetering/", "HAWMeteringWebserviceService")).getHAWMeteringWebservicePort();
+            meterSW = new HAWMeteringWebserviceService(new URL(m + "hawmetering/sw?wsdl"), new QName(
+                    "http://hawmetering/", "HAWMeteringWebserviceService")).getHAWMeteringWebservicePort();
+            meterNW = new HAWMeteringWebserviceService(new URL(m + "hawmetering/nw?wsdl"), new QName(
                     "http://hawmetering/", "HAWMeteringWebserviceService")).getHAWMeteringWebservicePort();
         } catch (MalformedURLException e) {
             e.printStackTrace();
