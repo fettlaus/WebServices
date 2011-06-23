@@ -3,8 +3,11 @@ package sensor;
 import hawmetering.HAWMeteringWebservice;
 import hawmetering.HAWMeteringWebserviceService;
 
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
@@ -16,11 +19,11 @@ import javax.xml.ws.Holder;
 @WebService(wsdlLocation = "Sensor.wsdl", serviceName = "SensorService", portName = "SensorSOAP", targetNamespace = "http://sensor/", name = "Sensor", endpointInterface = "sensor.Sensor")
 public class SensorImpl implements Sensor {
 
-    class ConnectionException extends Exception {
+    class ConnectionException extends Exception{
         private static final long serialVersionUID = -5728422902093458359L;
-
+        
     }
-
+    
     // Status vars
     boolean inconsistent = true;
     boolean running = true;
@@ -28,18 +31,18 @@ public class SensorImpl implements Sensor {
     boolean needElection = false;
     int value = 50;
     Directions activeDirections = new Directions();
-
-    // my Data
+    
+    //my Data
     public long id;
     SensorObj myObj = new SensorObj();
-
-    // DB related
+    
+    //DB related
     SensorList sensorlist = new SensorList();
     LinkedHashSet<SensorObj> defunctsensors = new LinkedHashSet<SensorObj>();
     LinkedHashSet<SensorObj> newsensors = new LinkedHashSet<SensorObj>();
     long sensorlistversion = 0;
-
-    // Environment
+    
+    //Environment
     String bootstrapSensor;
     SensorObj coordinator;
     String meterURI;
@@ -47,7 +50,7 @@ public class SensorImpl implements Sensor {
     HAWMeteringWebservice meterSE;
     HAWMeteringWebservice meterSW;
     HAWMeteringWebservice meterNW;
-
+    
     SensorLog l;
     Random rnd = new Random();
 
@@ -105,19 +108,19 @@ public class SensorImpl implements Sensor {
 
     @Override
     public boolean election() {
-        for (SensorObj s : sensorlist.getList()) {
-            if (s.getId() > myObj.getId()) {
-                try {
+        for(SensorObj s : sensorlist.getList()){
+            if(s.getId()>myObj.getId()){
+                try{
                     toSensor(s).election();
                     return false;
-                } catch (Exception e) {
+                }catch(Exception e){
                     ;
                 }
             }
         }
         // I won! set coordinator
         iscoordinator = true;
-        for (SensorObj s : sensorlist.getList()) {
+        for(SensorObj s : sensorlist.getList()){
             try {
                 toSensor(s).setCoordinator(myObj);
             } catch (ConnectionException e) {
@@ -145,22 +148,18 @@ public class SensorImpl implements Sensor {
 
     @Override
     public boolean ping() {
-        value += rnd.nextInt() % 10;
-        value = (value < 0) ? (value * -1) : value;
-        try {
-            if (activeDirections.isNE()) {
-                meterNE.setValue(value);
-            }
-            if (activeDirections.isSE()) {
-                meterSE.setValue(value);
-            }
-            if (activeDirections.isSW()) {
-                meterSW.setValue(value);
-            }
-            if (activeDirections.isNW()) {
-                meterNW.setValue(value);
-            }
-        } catch (Exception e) {
+        value += rnd.nextInt()%10;
+        value = (value < 0)? (value*-1) : value;
+        try{
+        if(activeDirections.isNE())
+            meterNE.setValue(value);
+        if(activeDirections.isSE())
+            meterSE.setValue(value);
+        if(activeDirections.isSW())
+            meterSW.setValue(value);
+        if(activeDirections.isNW())
+            meterNW.setValue(value);
+        }catch(Exception e){
             running = false;
             return false;
         }
@@ -181,7 +180,7 @@ public class SensorImpl implements Sensor {
                 return true;
             }
             l.log(Level.INFO, "inconsistent database");
-            // Refresh DB on next possibility
+            //Refresh DB on next possibility
             inconsistent = true;
         }
         return false;
@@ -210,15 +209,38 @@ public class SensorImpl implements Sensor {
         return false;
     }
 
-    private void setDefunct(SensorObj sensor) {
-        for (SensorObj s : sensorlist.getList()) {
-            if (s.getLocation().equals(sensor.getLocation())) {
-                defunctsensors.add(s);
-            }
+    private synchronized void refreshDatabase() {
+        l.log(Level.INFO, "Refreshing database");
+        Holder<SensorList> list = new Holder<SensorList>();
+        Holder<Long> version = new Holder<Long>();
+        try {
+            toSensor(coordinator).getDatabase(list, version);
+            sensorlist = list.value;
+            sensorlistversion = version.value;
+        } catch (Exception e) {
+            needElection = true;
         }
     }
 
-    private Sensor toSensor(SensorObj sensor) throws ConnectionException {
+    // Webservice functions
+
+    private synchronized void updateDatabase() {
+        for(Iterator<SensorObj> i = newsensors.iterator();i.hasNext();){
+            SensorObj s = i.next();
+            i.remove();
+            for (SensorObj sensor : sensorlist.getList()) {
+                    try {
+                        toSensor(sensor).addDatabase(s, sensorlistversion);
+                    } catch (ConnectionException e) {
+                        ;
+                    }
+            }
+            sensorlistversion++;
+            sensorlist.getList().add(s);
+        }
+    }
+
+    private Sensor toSensor(SensorObj sensor) throws ConnectionException{
         Sensor ref = null;
         try {
             ref = new SensorService(new URL(sensor.getLocation() + "sensor?wsdl"), new QName("http://sensor/",
@@ -228,6 +250,33 @@ public class SensorImpl implements Sensor {
             throw new ConnectionException();
         }
         return ref;
+    }
+    
+    private void setDefunct(SensorObj sensor){
+        for(SensorObj s : sensorlist.getList()){
+            if(s.getLocation().equals(sensor.getLocation()))
+                    defunctsensors.add(s);
+        }
+    }
+    
+    private synchronized void cleanDatabase(){
+        List<SensorObj> temp = new LinkedList<SensorObj>();
+        SensorObj toremove;
+        for(Iterator<SensorObj> i = defunctsensors.iterator();i.hasNext();){
+            // get a defect Sensor
+            toremove = i.next();
+            i.remove();
+            // remove sensor from every reachable database
+            for (SensorObj sensor : temp) {
+                    try {
+                        toSensor(sensor).removeDatabase(toremove, sensorlistversion);
+                    } catch (Exception e) {
+                        ;
+                    }            
+            }
+            sensorlistversion++;
+            while(sensorlist.getList().remove(toremove));
+        }
     }
 
     void run() {
@@ -252,7 +301,7 @@ public class SensorImpl implements Sensor {
                 e.printStackTrace();
                 return;
             }
-            // refreshDatabase();
+            //refreshDatabase();
         }
 
         try {
