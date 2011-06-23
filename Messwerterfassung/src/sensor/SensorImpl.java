@@ -24,19 +24,29 @@ public class SensorImpl implements Sensor {
         
     }
     
+    // Status vars
+    boolean inconsistent = true;
+    boolean running = true;
+    boolean iscoordinator = false;
+    boolean needElection = false;
+    
+    //my Data
     public long id;
     SensorObj myObj = new SensorObj();
-    boolean iscoordinator = false;
-    boolean running = true;
-    String bootstrapSensor;
+    
+    //DB related
     SensorList sensorlist = new SensorList();
     LinkedHashSet<SensorObj> defunctsensors = new LinkedHashSet<SensorObj>();
     long sensorlistversion = 0;
+    
+    //Environment
+    String bootstrapSensor;
     SensorObj coordinator;
-    Directions activeDirections = new Directions();
-    SensorLog l;
     String meterURI;
     HAWMeteringWebservice meter;
+    
+    Directions activeDirections = new Directions();
+    SensorLog l;
 
     /**
      * @param port Port to run on
@@ -74,7 +84,8 @@ public class SensorImpl implements Sensor {
                 sensorlistversion++;
             } else {
                 l.log(Level.INFO, "inconsistent database");
-                refreshDatabase();
+                // refresh DB on next possibility
+                inconsistent = true;
             }
         }
         return false;
@@ -135,7 +146,8 @@ public class SensorImpl implements Sensor {
                 return true;
             }
             l.log(Level.INFO, "inconsistent database");
-            refreshDatabase();
+            //Refresh DB on next possibility
+            inconsistent = true;
         }
         return false;
     }
@@ -152,7 +164,6 @@ public class SensorImpl implements Sensor {
     @Override
     public boolean setCoordinator(SensorObj coordinator) {
         this.coordinator = coordinator;
-
         return true;
 
     }
@@ -163,7 +174,7 @@ public class SensorImpl implements Sensor {
         return false;
     }
 
-    private void refreshDatabase() {
+    private synchronized void refreshDatabase() {
         l.log(Level.INFO, "Refreshing database");
         Holder<SensorList> list = new Holder<SensorList>();
         Holder<Long> version = new Holder<Long>();
