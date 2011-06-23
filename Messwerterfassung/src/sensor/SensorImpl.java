@@ -29,6 +29,8 @@ public class SensorImpl implements Sensor {
     boolean running = true;
     boolean iscoordinator = false;
     boolean needElection = false;
+    int value = 50;
+    Directions activeDirections = new Directions();
     
     //my Data
     public long id;
@@ -48,10 +50,9 @@ public class SensorImpl implements Sensor {
     HAWMeteringWebservice meterSE;
     HAWMeteringWebservice meterSW;
     HAWMeteringWebservice meterNW;
-    int value = 0;
     
-    Directions activeDirections = new Directions();
     SensorLog l;
+    Random rnd = new Random();
 
     /**
      * @param meter URI to HAWMeter
@@ -63,7 +64,6 @@ public class SensorImpl implements Sensor {
         l = new SensorLog("sensor.SensorImpl", null);
         bootstrapSensor = bootstrap;
 
-        Random rnd = new Random();
         id = rnd.nextLong();
 
         l.log(Level.FINE, "Starting with ID " + id);
@@ -133,7 +133,6 @@ public class SensorImpl implements Sensor {
         // TODO
         // if(activeDirections.isNE())
         // / meter.
-        Random rnd = new Random();
         value += rnd.nextInt()%10;
         value = (value < 0)? (value*-1) : value;
         if(activeDirections.isNE())
