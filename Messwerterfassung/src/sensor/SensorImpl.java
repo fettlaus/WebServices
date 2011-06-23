@@ -58,13 +58,16 @@ public class SensorImpl implements Sensor {
 
     @Override
     public synchronized boolean addDatabase(SensorObj sensor, long version) {
-        if (sensorlistversion == version) {
-            l.log(Level.FINE, "Add sensor. DBVersion(" + sensorlistversion + ")");
-            sensorlist.getList().add(sensor);
-            sensorlistversion++;
-        } else {
-            l.log(Level.INFO, "inconsistent database");
-            refreshDatabase();
+        //client-only function
+        if(!iscoordinator){
+            if (sensorlistversion == version) {
+                l.log(Level.FINE, "Add sensor. DBVersion(" + sensorlistversion + ")");
+                sensorlist.getList().add(sensor);
+                sensorlistversion++;
+            } else {
+                l.log(Level.INFO, "inconsistent database");
+                refreshDatabase();
+            }
         }
         return false;
     }
@@ -112,17 +115,18 @@ public class SensorImpl implements Sensor {
 
     @Override
     public synchronized boolean removeDatabase(SensorObj sensor, long version) {
-        if (sensorlistversion == version) {
-            l.log(Level.FINE, "Removing sensor. DBVersion(" + sensorlistversion + ")");
-            
-            List<SensorObj> list = sensorlist.getList();           
-            while(list.remove(sensor));                      
-            sensorlistversion++;
-        } else {
+        if(!iscoordinator){
+            if (sensorlistversion == version) {
+                l.log(Level.FINE, "Removing sensor. DBVersion(" + sensorlistversion + ")");
+                
+                List<SensorObj> list = sensorlist.getList();           
+                while(list.remove(sensor));                      
+                sensorlistversion++;
+                return true;
+            }
             l.log(Level.INFO, "inconsistent database");
-            refreshDatabase();
+            refreshDatabase();            
         }
-        sensorlistversion++;
         return false;
     }
 
@@ -206,6 +210,7 @@ public class SensorImpl implements Sensor {
 
             coordinator = toSensor(boot).getCoordinator();
             m = toSensor(boot).getDisplay();
+            // add us first, to get updates
             toSensor(coordinator).addSensor(myObj);
             refreshDatabase();
         }
