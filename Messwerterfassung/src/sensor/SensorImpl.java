@@ -22,6 +22,20 @@ public class SensorImpl implements Sensor {
         
     }
     
+    class mySensor extends SensorObj{
+        @Override
+        public boolean equals(Object obj) {
+            try{
+                SensorObj test = (SensorObj) obj;
+                if(test.getLocation().equals(location))
+                    return true;
+            }catch (Exception e){
+                return false;
+            }
+            return false;
+        }
+        
+    }
     public long id;
     SensorObj myObj = new SensorObj();
     boolean iscoordinator = false;
