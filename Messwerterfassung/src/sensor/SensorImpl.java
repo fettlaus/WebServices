@@ -229,13 +229,11 @@ public class SensorImpl implements Sensor {
             SensorObj s = i.next();
             i.remove();
             for (SensorObj sensor : sensorlist.getList()) {
-                if(sensor.getLocation() != myObj.getLocation()){
                     try {
                         toSensor(sensor).addDatabase(s, sensorlistversion);
                     } catch (ConnectionException e) {
                         ;
                     }
-                }
             }
             sensorlistversion++;
             sensorlist.getList().add(s);
@@ -270,14 +268,11 @@ public class SensorImpl implements Sensor {
             i.remove();
             // remove sensor from every reachable database
             for (SensorObj sensor : temp) {
-                // if it is not us
-                if(sensor.getLocation()!=myObj.getLocation()){
                     try {
                         toSensor(sensor).removeDatabase(toremove, sensorlistversion);
                     } catch (Exception e) {
                         ;
-                    }
-                }               
+                    }            
             }
             sensorlistversion++;
             while(sensorlist.getList().remove(toremove));
