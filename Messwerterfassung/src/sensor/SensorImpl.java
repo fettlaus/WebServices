@@ -5,6 +5,8 @@ import hawmetering.HAWMeteringWebserviceService;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -28,6 +30,7 @@ public class SensorImpl implements Sensor {
     boolean running = true;
     String bootstrapSensor;
     SensorList sensorlist = new SensorList();
+    LinkedHashSet<SensorObj> defunctsensors = new LinkedHashSet<SensorObj>();
     long sensorlistversion = 0;
     SensorObj coordinator;
     Directions activeDirections = new Directions();
@@ -183,7 +186,7 @@ public class SensorImpl implements Sensor {
                 
             }
             sensorlistversion++;
-            //TODO: remove sensor from self
+            while(sensorlist.getList().remove(toremove));
             
         }
         
@@ -226,6 +229,30 @@ public class SensorImpl implements Sensor {
             throw new ConnectionException();
         }
         return ref;
+    }
+    
+    private void cleanDatabase(){
+        List<SensorObj> temp = new LinkedList<SensorObj>();
+        SensorObj toremove;
+        for(Iterator<SensorObj> i = defunctsensors.iterator();i.hasNext();){
+            // get a defect Sensor
+            toremove = i.next();
+            i.remove();
+            // remove sensor from every reachable database
+            for (SensorObj sensor : temp) {
+                // if it is not us
+                if(sensor.getLocation()!=myObj.getLocation()){
+                    try {
+                        toSensor(sensor).removeDatabase(toremove, sensorlistversion);
+                    } catch (Exception e) {
+                        // remove sensor if it didn't respond to our removal request
+                        defunctsensors.add(sensor);
+                    }
+                }               
+            }
+            sensorlistversion++;
+            while(sensorlist.getList().remove(toremove));
+        }
     }
 
     void run() {
