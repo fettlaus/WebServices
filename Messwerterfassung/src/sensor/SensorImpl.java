@@ -182,11 +182,13 @@ public class SensorImpl implements Sensor {
         List<SensorObj> temp = new LinkedList<SensorObj>();
         temp.addAll(sensorlist.getList());
         for (SensorObj sensor : temp) {
+            if(client.getLocation() != myObj.getLocation()){
                 try {
                     toSensor(sensor).addDatabase(client, sensorlistversion);
                 } catch (ConnectionException e) {
                     ;
                 }
+            }
         }
         sensorlistversion++;
         sensorlist.getList().add(client);
