@@ -31,10 +31,6 @@ public class SensorMain {
                 directions.setNW(true);
         }
 
-        // System.out.println(sensorName + " " + existingSensor);
-        // System.out.println(directions.isNE() + " " + directions.isSE() + " "
-        // + directions.isSW() + " " + directions.isSE());
-
         SensorImpl sensor = new SensorImpl(meter, sensorName, existingSensor, directions);
         Endpoint endpoint = Endpoint.create(sensor);
         endpoint.publish(sensorName + "sensor");
