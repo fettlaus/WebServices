@@ -2,7 +2,7 @@ WebServices
 ============
 Wahl mit Hilfe des Bully-Algorythmus.
 
-    SensorMain Port:int Name:String <-k | -s ExistingSensor:String> Display:<no,nw,so,sw>
+    SensorMain OwnAddress:String <-k HAWMeter:String | -s ExistingSensor:String> Display:<no,nw,so,sw>
 
     NW:0
     SO:1
@@ -11,7 +11,7 @@ Wahl mit Hilfe des Bully-Algorythmus.
    
 General
 --------
-    boolean ping()
+    boolean ping(long version)
     SensorObj getCoordinator()
     URL getDisplay()
     boolean activateDisplay(int direction)
