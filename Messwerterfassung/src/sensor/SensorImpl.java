@@ -301,17 +301,9 @@ public class SensorImpl implements Sensor {
         Directions inuse = new Directions();
         Directions active;
         Directions wanted;
-        inuse.setNE(false);
-        inuse.setSE(false);
-        inuse.setSW(false);
-        inuse.setNW(false);
         for(SensorObj s : sensorlist.getList()){
             wanted = s.getDirection();
             active = new Directions();
-            active.setNE(false);
-            active.setSE(false);
-            active.setSW(false);
-            active.setNW(false);
             //break if every meter is in use 
             if(inuse.ne&&inuse.nw&&inuse.se&&inuse.sw)
                 break;
