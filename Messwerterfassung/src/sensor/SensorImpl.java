@@ -3,14 +3,16 @@ package sensor;
 import hawmetering.HAWMeteringWebservice;
 import hawmetering.HAWMeteringWebserviceService;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 import javax.jws.WebService;
 import javax.xml.namespace.QName;
@@ -24,11 +26,11 @@ public class SensorImpl implements Sensor {
         
     }
     //Config
-    int maxTimeout = 600;
-    int waitingtime = 100;
+    int maxTimeout = 1200;
+    int waitingtime = 500;
     
     // Status vars
-    boolean inconsistent = true;
+    boolean inconsistent = false;
     boolean running = true;
     boolean iscoordinator = false;
     boolean needElection = false;
@@ -54,9 +56,10 @@ public class SensorImpl implements Sensor {
     HAWMeteringWebservice meterSW;
     HAWMeteringWebservice meterNW;
     
-    SensorLog l;
+    Logger l;
     long timeout;
     Random rnd = new Random();
+    LogManager lm;
 
     /**
      * @param meter URI to HAWMeter
@@ -65,7 +68,12 @@ public class SensorImpl implements Sensor {
      * @param directions The scales we want to write on
      */
     SensorImpl(String meter, String name, String bootstrap, Directions directions) {
-        l = new SensorLog("sensor.SensorImpl", null);
+        l = Logger.getLogger(SensorImpl.class.getName());
+        ConsoleHandler c = new ConsoleHandler();
+        l.setLevel(Level.ALL);
+        c.setLevel(Level.ALL);
+        l.addHandler(c);
+        
         bootstrapSensor = bootstrap;
 
         id = rnd.nextLong();
@@ -103,6 +111,7 @@ public class SensorImpl implements Sensor {
     @Override
     public boolean addSensor(SensorObj sensor) {
         if (iscoordinator) {
+            l.log(Level.FINE, "new sensor on list");
             newsensors.add(sensor);
             return true;
         }
@@ -112,6 +121,7 @@ public class SensorImpl implements Sensor {
 
     @Override
     public boolean election() {
+        l.log(Level.FINE, "election started");
         needElection = false;
         for(SensorObj s : sensorlist.getList()){
             if(s.getId()>myObj.getId()){
@@ -123,13 +133,17 @@ public class SensorImpl implements Sensor {
                 }
             }
         }
+        l.log(Level.FINE, "I won ("+myObj.getId()+")");
         // I won! set coordinator
         iscoordinator = true;
+        coordinator = myObj;
         for(SensorObj s : sensorlist.getList()){
-            try {
-                toSensor(s).setCoordinator(myObj);
-            } catch (ConnectionException e) {
-                ;
+            if(!s.getLocation().equals(myObj.getLocation())){
+                try {
+                    toSensor(s).setCoordinator(myObj);
+                } catch (ConnectionException e) {
+                    ;
+                }
             }
         }
         return true;
@@ -152,9 +166,13 @@ public class SensorImpl implements Sensor {
     }
 
     @Override
-    public boolean ping() {
+    public boolean ping(long version) {
+        if(version != sensorlistversion)
+            inconsistent = true;
+        l.log(Level.FINER, "Ping received! ("+myObj.getId()+")");
         timeout = System.currentTimeMillis() + maxTimeout;
-        value += rnd.nextInt()%10;
+        value += rnd.nextInt()%5;
+        value %= 100;
         value = (value < 0)? (value*-1) : value;
         try{
         if(activeDirections.isNE()){
@@ -207,6 +225,7 @@ public class SensorImpl implements Sensor {
     @Override
     public boolean removeSensor(SensorObj sensor) {
         if (iscoordinator) {
+            l.log(Level.FINE, "removing sensor by usr cmd ("+sensor.getId()+")");
             setDefunct(sensor);
             return true;
         }
@@ -217,6 +236,7 @@ public class SensorImpl implements Sensor {
     public boolean setCoordinator(SensorObj coordinator) {
         iscoordinator = false;
         this.coordinator = coordinator;
+        l.log(Level.FINE, myObj.id+" got "+coordinator.id+" as a new coordinator");
         return true;
 
     }
@@ -228,13 +248,14 @@ public class SensorImpl implements Sensor {
     }
 
     private synchronized void refreshDatabase() {
-        l.log(Level.INFO, "Refreshing database");
+        l.log(Level.INFO, myObj.id+" refreshing database");
         Holder<SensorList> list = new Holder<SensorList>();
         Holder<Long> version = new Holder<Long>();
         try {
             toSensor(coordinator).getDatabase(list, version);
             sensorlist = list.value;
             sensorlistversion = version.value;
+            inconsistent = false;
         } catch (Exception e) {
             needElection = true;
         }
@@ -243,6 +264,7 @@ public class SensorImpl implements Sensor {
     // Webservice functions
 
     private synchronized void updateDatabase() {
+        l.log(Level.FINE, myObj.id+" updating database");
         for(Iterator<SensorObj> i = newsensors.iterator();i.hasNext();){
             SensorObj s = i.next();
             i.remove();
@@ -273,6 +295,7 @@ public class SensorImpl implements Sensor {
     }
     
     private void setDefunct(SensorObj sensor){
+        l.log(Level.FINE, sensor.id+" added to defunct sensors");
         for(SensorObj s : sensorlist.getList()){
             if(s.getLocation().equals(sensor.getLocation()))
                     defunctsensors.add(s);
@@ -280,6 +303,7 @@ public class SensorImpl implements Sensor {
     }
     
     private synchronized void cleanDatabase(){
+        l.log(Level.FINE, "cleaning database");
         List<SensorObj> temp = new LinkedList<SensorObj>();
         SensorObj toremove;
         for(Iterator<SensorObj> i = defunctsensors.iterator();i.hasNext();){
@@ -302,6 +326,7 @@ public class SensorImpl implements Sensor {
     }
     
     private void updateDirections(){
+        l.log(Level.FINE, "updating directions");
         Directions inuse = new Directions();
         Directions active;
         Directions wanted;
@@ -331,11 +356,9 @@ public class SensorImpl implements Sensor {
 
     void run() {
 
-        String m;
         if (iscoordinator) {
             // starting as coordinator
             coordinator = myObj;
-            m = meterURI;
             sensorlist.getList().add(myObj);
         } else {
             // starting from bootstrap
@@ -344,37 +367,46 @@ public class SensorImpl implements Sensor {
 
             try {
                 coordinator = toSensor(boot).getCoordinator();
-                m = toSensor(boot).getDisplay();
-                // add us first, to get updates
-                toSensor(coordinator).addSensor(myObj);
+                meterURI = toSensor(boot).getDisplay();
+
             } catch (ConnectionException e) {
                 e.printStackTrace();
                 return;
             }
-            refreshDatabase();
+
         }
 
         try {
-            meterNE = new HAWMeteringWebserviceService(new URL(m + "hawmetering/no?wsdl"), new QName(
+            meterNE = new HAWMeteringWebserviceService(new URL(meterURI + "hawmetering/no?wsdl"), new QName(
                     "http://hawmetering/", "HAWMeteringWebserviceService")).getHAWMeteringWebservicePort();
-            meterSE = new HAWMeteringWebserviceService(new URL(m + "hawmetering/so?wsdl"), new QName(
+            meterSE = new HAWMeteringWebserviceService(new URL(meterURI + "hawmetering/so?wsdl"), new QName(
                     "http://hawmetering/", "HAWMeteringWebserviceService")).getHAWMeteringWebservicePort();
-            meterSW = new HAWMeteringWebserviceService(new URL(m + "hawmetering/sw?wsdl"), new QName(
+            meterSW = new HAWMeteringWebserviceService(new URL(meterURI + "hawmetering/sw?wsdl"), new QName(
                     "http://hawmetering/", "HAWMeteringWebserviceService")).getHAWMeteringWebservicePort();
-            meterNW = new HAWMeteringWebserviceService(new URL(m + "hawmetering/nw?wsdl"), new QName(
+            meterNW = new HAWMeteringWebserviceService(new URL(meterURI + "hawmetering/nw?wsdl"), new QName(
                     "http://hawmetering/", "HAWMeteringWebserviceService")).getHAWMeteringWebservicePort();
         } catch (Exception e) {
             e.printStackTrace();
             l.log(Level.SEVERE, "No meter reachable");
             return;
         }
-
+        timeout = System.currentTimeMillis() + maxTimeout;
+        
+        if(!iscoordinator){
+            // now add us and get started
+            try {
+                toSensor(coordinator).addSensor(myObj);
+            } catch (ConnectionException e1) {
+                return;
+            }
+            refreshDatabase();
+        }
         while (running) {
             if (iscoordinator) {
                 updateDirections();
                 for (SensorObj sensor : sensorlist.getList()) {
                     try {
-                        toSensor(sensor).ping();
+                        toSensor(sensor).ping(sensorlistversion);
                     } catch (ConnectionException e) {
                         ;
                     }
@@ -391,10 +423,9 @@ public class SensorImpl implements Sensor {
             } else {
                 if(inconsistent)
                    refreshDatabase(); 
-                if(timeout < System.currentTimeMillis()){
-                    needElection = true;
+                if(timeout < System.currentTimeMillis() || needElection){
+                    election();
                 }
-                election();
             }
             // common
 

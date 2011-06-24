@@ -49,6 +49,7 @@
         <wsdl:part name="success" type="xsd:boolean"></wsdl:part>
   </wsdl:message>
   <wsdl:message name="pingRequest">
+        <wsdl:part name="version" type="xsd:long"></wsdl:part>
   </wsdl:message>
   <wsdl:message name="pingResponse">
   	<wsdl:part name="success" type="xsd:boolean"></wsdl:part>

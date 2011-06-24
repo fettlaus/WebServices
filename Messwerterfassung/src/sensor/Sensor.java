@@ -71,12 +71,15 @@ public interface Sensor {
 
     /**
      * 
+     * @param version
      * @return
      *     returns boolean
      */
     @WebMethod(action = "http://sensor/ping")
     @WebResult(name = "success", partName = "success")
-    public boolean ping();
+    public boolean ping(
+        @WebParam(name = "version", partName = "version")
+        long version);
 
     /**
      * 

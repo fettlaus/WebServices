@@ -30,6 +30,14 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link SensorList }
+     * 
+     */
+    public SensorList createSensorList() {
+        return new SensorList();
+    }
+
+    /**
      * Create an instance of {@link Directions }
      * 
      */
@@ -43,14 +51,6 @@ public class ObjectFactory {
      */
     public SensorObj createSensorObj() {
         return new SensorObj();
-    }
-
-    /**
-     * Create an instance of {@link SensorList }
-     * 
-     */
-    public SensorList createSensorList() {
-        return new SensorList();
     }
 
 }
