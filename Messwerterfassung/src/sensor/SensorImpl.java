@@ -157,6 +157,7 @@ public class SensorImpl implements Sensor {
 
     @Override
     public void getDatabase(Holder<SensorList> list, Holder<Long> version) {
+        needDirections = true;
         list.value = sensorlist;
         version.value = sensorlistversion;
     }
