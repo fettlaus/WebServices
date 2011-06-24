@@ -284,6 +284,10 @@ public class SensorImpl implements Sensor {
             while(sensorlist.getList().remove(toremove));
         }
     }
+    
+    private void updateDirections(){
+        
+    }
 
     void run() {
 
@@ -327,6 +331,7 @@ public class SensorImpl implements Sensor {
 
         while (running) {
             if (iscoordinator) {
+                updateDirections();
                 for (SensorObj sensor : sensorlist.getList()) {
                     try {
                         toSensor(sensor).ping();
@@ -334,17 +339,22 @@ public class SensorImpl implements Sensor {
                         ;
                     }
                 }
-                cleanDatabase();
-                updateDatabase();
+                if(!defunctsensors.isEmpty())
+                    cleanDatabase();
+                if(!newsensors.isEmpty())
+                    updateDatabase();
                 try {
                     Thread.sleep(waitingtime);
                 } catch (InterruptedException e) {
                     ;
                 }
             } else {
+                if(inconsistent)
+                   refreshDatabase(); 
                 if(timeout < System.currentTimeMillis()){
                     needElection = true;
                 }
+                election();
             }
             // common
 
