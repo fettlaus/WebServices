@@ -29,6 +29,8 @@ public class SensorImpl implements Sensor {
     // Config
     int maxTimeout = 1200;
     int waitingtime = 500;
+    int variance = 5;
+    Level log = Level.ALL;
 
     // Status vars
     boolean inconsistent = false;
@@ -72,15 +74,16 @@ public class SensorImpl implements Sensor {
     SensorImpl(String meter, String name, String bootstrap, Directions directions) {
         l = Logger.getLogger(SensorImpl.class.getName());
         ConsoleHandler c = new ConsoleHandler();
-        l.setLevel(Level.ALL);
-        c.setLevel(Level.ALL);
+        l.setUseParentHandlers(false);
+        l.setLevel(log);
+        c.setLevel(log);
         l.addHandler(c);
 
         bootstrapSensor = bootstrap;
 
         id = rnd.nextLong();
 
-        l.log(Level.FINE, "Starting with ID " + id);
+        l.log(Level.INFO, "Starting with ID " + id);
 
         myObj.setLocation(name);
         myObj.setId(id);
@@ -98,11 +101,11 @@ public class SensorImpl implements Sensor {
         // client-only function
         if (!iscoordinator) {
             if (sensorlistversion == version) {
-                l.log(Level.FINE, "Add sensor. DBVersion(" + sensorlistversion + ")");
+                l.log(Level.FINER, "Add sensor. DBVersion(" + sensorlistversion + ")");
                 sensorlist.getList().add(sensor);
                 sensorlistversion++;
             } else {
-                l.log(Level.INFO, "inconsistent database");
+                l.log(Level.FINE, "inconsistent database");
                 // refresh DB on next possibility
                 inconsistent = true;
             }
@@ -113,7 +116,7 @@ public class SensorImpl implements Sensor {
     @Override
     public boolean addSensor(SensorObj sensor) {
         if (iscoordinator) {
-            l.log(Level.FINE, "new sensor on list");
+            l.log(Level.FINER, "new sensor on list");
             newsensors.add(sensor);
             return true;
         }
@@ -123,9 +126,13 @@ public class SensorImpl implements Sensor {
 
     @Override
     public boolean election() {
-        l.log(Level.FINE, "election started");
+        l.log(Level.FINER, "election started");
         needElection = false;
-        for (SensorObj s : sensorlist.getList()) {
+        List<SensorObj> slist = new LinkedList<SensorObj>();
+        synchronized(this){
+            slist.addAll(sensorlist.getList());
+        }
+        for (SensorObj s : slist) {
             if (s.getId() > myObj.getId()) {
                 try {
                     toSensor(s).election();
@@ -135,11 +142,11 @@ public class SensorImpl implements Sensor {
                 }
             }
         }
-        l.log(Level.FINE, "I won (" + myObj.getId() + ")");
+        l.log(Level.FINE, "I won the election (" + myObj.getId() + ")");
         // I won! set coordinator
         iscoordinator = true;
         coordinator = myObj;
-        for (SensorObj s : sensorlist.getList()) {
+        for (SensorObj s : slist) {
             if (!s.getLocation().equals(myObj.getLocation())) {
                 try {
                     toSensor(s).setCoordinator(myObj);
@@ -157,7 +164,7 @@ public class SensorImpl implements Sensor {
     }
 
     @Override
-    public void getDatabase(Holder<SensorList> list, Holder<Long> version) {
+    public synchronized void getDatabase(Holder<SensorList> list, Holder<Long> version) {
         needDirections = true;
         list.value = sensorlist;
         version.value = sensorlistversion;
@@ -173,9 +180,9 @@ public class SensorImpl implements Sensor {
         if (version != sensorlistversion) {
             inconsistent = true;
         }
-        l.log(Level.FINER, "Ping received! (" + myObj.getId() + ")");
+        l.log(Level.FINEST, "Ping received! (" + myObj.getId() + ")");
         timeout = System.currentTimeMillis() + maxTimeout;
-        value += rnd.nextInt() % 5;
+        value += rnd.nextInt() % variance;
         value %= 100;
         value = (value < 0) ? (value * -1) : value;
         try {
@@ -240,7 +247,7 @@ public class SensorImpl implements Sensor {
     public boolean setCoordinator(SensorObj coordinator) {
         iscoordinator = false;
         this.coordinator = coordinator;
-        l.log(Level.FINE, myObj.id + " got " + coordinator.id + " as a new coordinator");
+        l.log(Level.FINEST, myObj.id + " got " + coordinator.id + " as a new coordinator");
         return true;
 
     }
@@ -252,7 +259,7 @@ public class SensorImpl implements Sensor {
     }
 
     private synchronized void cleanDatabase() {
-        l.log(Level.FINE, "cleaning database");
+        l.log(Level.FINER, "cleaning database");
         List<SensorObj> temp = new LinkedList<SensorObj>();
         SensorObj toremove;
         for (Iterator<SensorObj> i = defunctsensors.iterator(); i.hasNext();) {
@@ -279,7 +286,7 @@ public class SensorImpl implements Sensor {
     // Webservice functions
 
     private synchronized void refreshDatabase() {
-        l.log(Level.INFO, myObj.id + " refreshing database");
+        l.log(Level.FINER, myObj.id + " refreshing database");
         Holder<SensorList> list = new Holder<SensorList>();
         Holder<Long> version = new Holder<Long>();
         try {
@@ -294,7 +301,11 @@ public class SensorImpl implements Sensor {
 
     private void setDefunct(SensorObj sensor) {
         l.log(Level.FINE, sensor.id + " added to defunct sensors");
-        for (SensorObj s : sensorlist.getList()) {
+        List<SensorObj> slist = new LinkedList<SensorObj>();
+        synchronized(this){
+            slist.addAll(sensorlist.getList());
+        }
+        for (SensorObj s : slist) {
             if (s.getLocation().equals(sensor.getLocation())) {
                 defunctsensors.add(s);
             }
@@ -332,7 +343,7 @@ public class SensorImpl implements Sensor {
         }
     }
 
-    private void updateDirections() {
+    private synchronized void updateDirections() {
         l.log(Level.FINE, "updating directions");
         Directions inuse = new Directions();
         Directions active;
@@ -377,6 +388,7 @@ public class SensorImpl implements Sensor {
                 meterURI = toSensor(boot).getDisplay();
 
             } catch (ConnectionException e) {
+                l.log(Level.SEVERE, "can't connect to bootstrap");
                 e.printStackTrace();
                 return;
             }
@@ -404,6 +416,7 @@ public class SensorImpl implements Sensor {
             try {
                 toSensor(coordinator).addSensor(myObj);
             } catch (ConnectionException e1) {
+                l.log(Level.SEVERE, "Can't connect to coordinator");
                 return;
             }
             refreshDatabase();
@@ -455,6 +468,7 @@ public class SensorImpl implements Sensor {
         try {
             toSensor(coordinator).removeSensor(myObj);
         } catch (ConnectionException e) {
+            l.log(Level.INFO, "graceful shutdown");
             return;
         }
     }
