@@ -34,6 +34,7 @@ public class SensorImpl implements Sensor {
     boolean running = true;
     boolean iscoordinator = false;
     boolean needElection = false;
+    boolean needDirections = true;
     int value = 50;
     Directions activeDirections = new Directions();
     
@@ -403,7 +404,12 @@ public class SensorImpl implements Sensor {
         }
         while (running) {
             if (iscoordinator) {
-                updateDirections();
+                
+                if(needDirections){
+                    updateDirections();
+                    needDirections = false;
+                }
+                
                 for (SensorObj sensor : sensorlist.getList()) {
                     try {
                         toSensor(sensor).ping(sensorlistversion);
@@ -411,10 +417,17 @@ public class SensorImpl implements Sensor {
                         ;
                     }
                 }
-                if(!defunctsensors.isEmpty())
+                
+                if(!defunctsensors.isEmpty()){
                     cleanDatabase();
-                if(!newsensors.isEmpty())
+                    needDirections = true;
+                }
+                
+                if(!newsensors.isEmpty()){
                     updateDatabase();
+                    needDirections = true;
+                }
+                
                 try {
                     Thread.sleep(waitingtime);
                 } catch (InterruptedException e) {
