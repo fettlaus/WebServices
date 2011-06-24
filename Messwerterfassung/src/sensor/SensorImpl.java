@@ -157,14 +157,26 @@ public class SensorImpl implements Sensor {
         value += rnd.nextInt()%10;
         value = (value < 0)? (value*-1) : value;
         try{
-        if(activeDirections.isNE())
+        if(activeDirections.isNE()){
             meterNE.setValue(value);
-        if(activeDirections.isSE())
+            meterNE.setTitle(Long.toHexString(myObj.getId()));
+        }
+            
+        if(activeDirections.isSE()){
             meterSE.setValue(value);
-        if(activeDirections.isSW())
+            meterSE.setTitle(Long.toHexString(myObj.getId()));
+        }
+            
+        if(activeDirections.isSW()){
             meterSW.setValue(value);
-        if(activeDirections.isNW())
+            meterSW.setTitle(Long.toHexString(myObj.getId()));
+        }
+            
+        if(activeDirections.isNW()){
             meterNW.setValue(value);
+            meterNW.setTitle(Long.toHexString(myObj.getId()));
+        }
+            
         }catch(Exception e){
             running = false;
             return false;
@@ -286,7 +298,39 @@ public class SensorImpl implements Sensor {
     }
     
     private void updateDirections(){
-        
+        Directions inuse = new Directions();
+        Directions active;
+        Directions wanted;
+        inuse.setNE(false);
+        inuse.setSE(false);
+        inuse.setSW(false);
+        inuse.setNW(false);
+        for(SensorObj s : sensorlist.getList()){
+            wanted = s.getDirection();
+            active = new Directions();
+            active.setNE(false);
+            active.setSE(false);
+            active.setSW(false);
+            active.setNW(false);
+            //break if every meter is in use 
+            if(inuse.ne&&inuse.nw&&inuse.se&&inuse.sw)
+                break;
+                active.setNE(wanted.ne&&!inuse.ne);           
+                active.setSE(wanted.se&&!inuse.se);
+                active.setSW(wanted.sw&&!inuse.sw);
+                active.setNW(wanted.nw&&!inuse.nw);
+            try {
+                toSensor(s).setDisplay(active);
+                inuse.ne = inuse.ne || active.ne;
+                inuse.se = inuse.se || active.se;
+                inuse.sw = inuse.sw || active.sw;
+                inuse.nw = inuse.nw || active.nw;
+            } catch (ConnectionException e) {
+                ;
+            }
+            
+            
+        }
     }
 
     void run() {
