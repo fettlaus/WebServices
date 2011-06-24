@@ -25,6 +25,7 @@ public class SensorImpl implements Sensor {
     }
     //Config
     int maxTimeout = 600;
+    int waitingtime = 100;
     
     // Status vars
     boolean inconsistent = true;
@@ -152,9 +153,6 @@ public class SensorImpl implements Sensor {
 
     @Override
     public boolean ping() {
-        if(timeout < System.currentTimeMillis()){
-            needElection = true;
-        }
         timeout = System.currentTimeMillis() + maxTimeout;
         value += rnd.nextInt()%10;
         value = (value < 0)? (value*-1) : value;
@@ -333,16 +331,25 @@ public class SensorImpl implements Sensor {
                     try {
                         toSensor(sensor).ping();
                     } catch (ConnectionException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
+                        ;
                     }
                 }
+                cleanDatabase();
+                updateDatabase();
+                try {
+                    Thread.sleep(waitingtime);
+                } catch (InterruptedException e) {
+                    ;
+                }
             } else {
-                // check for ping
+                if(timeout < System.currentTimeMillis()){
+                    needElection = true;
+                }
             }
             // common
 
         }
+        
         // try graceful shutdown
         try {
             toSensor(coordinator).removeSensor(myObj);
