@@ -30,7 +30,7 @@ public class SensorImpl implements Sensor {
     int maxTimeout = 1200;
     int waitingtime = 500;
     int variance = 5;
-    Level log = Level.ALL;
+    Level log = Level.INFO;
 
     // Status vars
     boolean inconsistent = false;
