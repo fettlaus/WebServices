@@ -129,7 +129,7 @@ public class SensorImpl implements Sensor {
         l.log(Level.FINER, "election started");
         needElection = false;
         List<SensorObj> slist = new LinkedList<SensorObj>();
-        synchronized(this){
+        synchronized (this) {
             slist.addAll(sensorlist.getList());
         }
         for (SensorObj s : slist) {
@@ -302,7 +302,7 @@ public class SensorImpl implements Sensor {
     private void setDefunct(SensorObj sensor) {
         l.log(Level.FINE, sensor.id + " added to defunct sensors");
         List<SensorObj> slist = new LinkedList<SensorObj>();
-        synchronized(this){
+        synchronized (this) {
             slist.addAll(sensorlist.getList());
         }
         for (SensorObj s : slist) {
