@@ -21,14 +21,15 @@ import javax.xml.ws.Holder;
 @WebService(wsdlLocation = "Sensor.wsdl", serviceName = "SensorService", portName = "SensorSOAP", targetNamespace = "http://sensor/", name = "Sensor", endpointInterface = "sensor.Sensor")
 public class SensorImpl implements Sensor {
 
-    class ConnectionException extends Exception{
+    class ConnectionException extends Exception {
         private static final long serialVersionUID = -5728422902093458359L;
-        
+
     }
-    //Config
+
+    // Config
     int maxTimeout = 1200;
     int waitingtime = 500;
-    
+
     // Status vars
     boolean inconsistent = false;
     boolean running = true;
@@ -37,18 +38,18 @@ public class SensorImpl implements Sensor {
     boolean needDirections = true;
     int value = 50;
     Directions activeDirections = new Directions();
-    
-    //my Data
+
+    // my Data
     public long id;
     SensorObj myObj = new SensorObj();
-    
-    //DB related
+
+    // DB related
     SensorList sensorlist = new SensorList();
     LinkedHashSet<SensorObj> defunctsensors = new LinkedHashSet<SensorObj>();
     LinkedHashSet<SensorObj> newsensors = new LinkedHashSet<SensorObj>();
     long sensorlistversion = 0;
-    
-    //Environment
+
+    // Environment
     String bootstrapSensor;
     SensorObj coordinator;
     String meterURI;
@@ -56,7 +57,7 @@ public class SensorImpl implements Sensor {
     HAWMeteringWebservice meterSE;
     HAWMeteringWebservice meterSW;
     HAWMeteringWebservice meterNW;
-    
+
     Logger l;
     long timeout;
     Random rnd = new Random();
@@ -74,7 +75,7 @@ public class SensorImpl implements Sensor {
         l.setLevel(Level.ALL);
         c.setLevel(Level.ALL);
         l.addHandler(c);
-        
+
         bootstrapSensor = bootstrap;
 
         id = rnd.nextLong();
@@ -124,22 +125,22 @@ public class SensorImpl implements Sensor {
     public boolean election() {
         l.log(Level.FINE, "election started");
         needElection = false;
-        for(SensorObj s : sensorlist.getList()){
-            if(s.getId()>myObj.getId()){
-                try{
+        for (SensorObj s : sensorlist.getList()) {
+            if (s.getId() > myObj.getId()) {
+                try {
                     toSensor(s).election();
                     return false;
-                }catch(Exception e){
+                } catch (Exception e) {
                     ;
                 }
             }
         }
-        l.log(Level.FINE, "I won ("+myObj.getId()+")");
+        l.log(Level.FINE, "I won (" + myObj.getId() + ")");
         // I won! set coordinator
         iscoordinator = true;
         coordinator = myObj;
-        for(SensorObj s : sensorlist.getList()){
-            if(!s.getLocation().equals(myObj.getLocation())){
+        for (SensorObj s : sensorlist.getList()) {
+            if (!s.getLocation().equals(myObj.getLocation())) {
                 try {
                     toSensor(s).setCoordinator(myObj);
                 } catch (ConnectionException e) {
@@ -169,35 +170,36 @@ public class SensorImpl implements Sensor {
 
     @Override
     public boolean ping(long version) {
-        if(version != sensorlistversion)
+        if (version != sensorlistversion) {
             inconsistent = true;
-        l.log(Level.FINER, "Ping received! ("+myObj.getId()+")");
+        }
+        l.log(Level.FINER, "Ping received! (" + myObj.getId() + ")");
         timeout = System.currentTimeMillis() + maxTimeout;
-        value += rnd.nextInt()%5;
+        value += rnd.nextInt() % 5;
         value %= 100;
-        value = (value < 0)? (value*-1) : value;
-        try{
-        if(activeDirections.isNE()){
-            meterNE.setValue(value);
-            meterNE.setTitle(Long.toHexString(myObj.getId()));
-        }
-            
-        if(activeDirections.isSE()){
-            meterSE.setValue(value);
-            meterSE.setTitle(Long.toHexString(myObj.getId()));
-        }
-            
-        if(activeDirections.isSW()){
-            meterSW.setValue(value);
-            meterSW.setTitle(Long.toHexString(myObj.getId()));
-        }
-            
-        if(activeDirections.isNW()){
-            meterNW.setValue(value);
-            meterNW.setTitle(Long.toHexString(myObj.getId()));
-        }
-            
-        }catch(Exception e){
+        value = (value < 0) ? (value * -1) : value;
+        try {
+            if (activeDirections.isNE()) {
+                meterNE.setValue(value);
+                meterNE.setTitle(Long.toHexString(myObj.getId()));
+            }
+
+            if (activeDirections.isSE()) {
+                meterSE.setValue(value);
+                meterSE.setTitle(Long.toHexString(myObj.getId()));
+            }
+
+            if (activeDirections.isSW()) {
+                meterSW.setValue(value);
+                meterSW.setTitle(Long.toHexString(myObj.getId()));
+            }
+
+            if (activeDirections.isNW()) {
+                meterNW.setValue(value);
+                meterNW.setTitle(Long.toHexString(myObj.getId()));
+            }
+
+        } catch (Exception e) {
             running = false;
             return false;
         }
@@ -218,7 +220,7 @@ public class SensorImpl implements Sensor {
                 return true;
             }
             l.log(Level.INFO, "inconsistent database");
-            //Refresh DB on next possibility
+            // Refresh DB on next possibility
             inconsistent = true;
         }
         return false;
@@ -227,7 +229,7 @@ public class SensorImpl implements Sensor {
     @Override
     public boolean removeSensor(SensorObj sensor) {
         if (iscoordinator) {
-            l.log(Level.FINE, "removing sensor by usr cmd ("+sensor.getId()+")");
+            l.log(Level.FINE, "removing sensor by usr cmd (" + sensor.getId() + ")");
             setDefunct(sensor);
             return true;
         }
@@ -238,7 +240,7 @@ public class SensorImpl implements Sensor {
     public boolean setCoordinator(SensorObj coordinator) {
         iscoordinator = false;
         this.coordinator = coordinator;
-        l.log(Level.FINE, myObj.id+" got "+coordinator.id+" as a new coordinator");
+        l.log(Level.FINE, myObj.id + " got " + coordinator.id + " as a new coordinator");
         return true;
 
     }
@@ -249,8 +251,35 @@ public class SensorImpl implements Sensor {
         return false;
     }
 
+    private synchronized void cleanDatabase() {
+        l.log(Level.FINE, "cleaning database");
+        List<SensorObj> temp = new LinkedList<SensorObj>();
+        SensorObj toremove;
+        for (Iterator<SensorObj> i = defunctsensors.iterator(); i.hasNext();) {
+            // get a defect Sensor
+            toremove = i.next();
+            i.remove();
+            // remove sensor from every reachable database
+            for (SensorObj sensor : temp) {
+                if (!sensor.getLocation().equals(myObj.getLocation())) {
+                    try {
+                        toSensor(sensor).removeDatabase(toremove, sensorlistversion);
+                    } catch (Exception e) {
+                        ;
+                    }
+                }
+            }
+            sensorlistversion++;
+            while (sensorlist.getList().remove(toremove)) {
+                ;
+            }
+        }
+    }
+
+    // Webservice functions
+
     private synchronized void refreshDatabase() {
-        l.log(Level.INFO, myObj.id+" refreshing database");
+        l.log(Level.INFO, myObj.id + " refreshing database");
         Holder<SensorList> list = new Holder<SensorList>();
         Holder<Long> version = new Holder<Long>();
         try {
@@ -263,15 +292,34 @@ public class SensorImpl implements Sensor {
         }
     }
 
-    // Webservice functions
+    private void setDefunct(SensorObj sensor) {
+        l.log(Level.FINE, sensor.id + " added to defunct sensors");
+        for (SensorObj s : sensorlist.getList()) {
+            if (s.getLocation().equals(sensor.getLocation())) {
+                defunctsensors.add(s);
+            }
+        }
+    }
+
+    private Sensor toSensor(SensorObj sensor) throws ConnectionException {
+        Sensor ref = null;
+        try {
+            ref = new SensorService(new URL(sensor.getLocation() + "sensor?wsdl"), new QName("http://sensor/",
+                    "SensorService")).getSensorSOAP();
+        } catch (Exception e) {
+            setDefunct(sensor);
+            throw new ConnectionException();
+        }
+        return ref;
+    }
 
     private synchronized void updateDatabase() {
-        l.log(Level.FINE, myObj.id+" updating database");
-        for(Iterator<SensorObj> i = newsensors.iterator();i.hasNext();){
+        l.log(Level.FINE, myObj.id + " updating database");
+        for (Iterator<SensorObj> i = newsensors.iterator(); i.hasNext();) {
             SensorObj s = i.next();
             i.remove();
             for (SensorObj sensor : sensorlist.getList()) {
-                if(!sensor.getLocation().equals(myObj.getLocation())){
+                if (!sensor.getLocation().equals(myObj.getLocation())) {
                     try {
                         toSensor(sensor).addDatabase(s, sensorlistversion);
                     } catch (ConnectionException e) {
@@ -284,64 +332,22 @@ public class SensorImpl implements Sensor {
         }
     }
 
-    private Sensor toSensor(SensorObj sensor) throws ConnectionException{
-        Sensor ref = null;
-        try {
-            ref = new SensorService(new URL(sensor.getLocation() + "sensor?wsdl"), new QName("http://sensor/",
-                    "SensorService")).getSensorSOAP();
-        } catch (Exception e) {
-            setDefunct(sensor);
-            throw new ConnectionException();
-        }
-        return ref;
-    }
-    
-    private void setDefunct(SensorObj sensor){
-        l.log(Level.FINE, sensor.id+" added to defunct sensors");
-        for(SensorObj s : sensorlist.getList()){
-            if(s.getLocation().equals(sensor.getLocation()))
-                    defunctsensors.add(s);
-        }
-    }
-    
-    private synchronized void cleanDatabase(){
-        l.log(Level.FINE, "cleaning database");
-        List<SensorObj> temp = new LinkedList<SensorObj>();
-        SensorObj toremove;
-        for(Iterator<SensorObj> i = defunctsensors.iterator();i.hasNext();){
-            // get a defect Sensor
-            toremove = i.next();
-            i.remove();
-            // remove sensor from every reachable database
-            for (SensorObj sensor : temp) {
-                if(!sensor.getLocation().equals(myObj.getLocation())){
-                    try {
-                        toSensor(sensor).removeDatabase(toremove, sensorlistversion);
-                    } catch (Exception e) {
-                        ;
-                    } 
-                }
-            }
-            sensorlistversion++;
-            while(sensorlist.getList().remove(toremove));
-        }
-    }
-    
-    private void updateDirections(){
+    private void updateDirections() {
         l.log(Level.FINE, "updating directions");
         Directions inuse = new Directions();
         Directions active;
         Directions wanted;
-        for(SensorObj s : sensorlist.getList()){
+        for (SensorObj s : sensorlist.getList()) {
             wanted = s.getDirection();
             active = new Directions();
-            //break if every meter is in use 
-            if(inuse.ne&&inuse.nw&&inuse.se&&inuse.sw)
+            // break if every meter is in use
+            if (inuse.ne && inuse.nw && inuse.se && inuse.sw) {
                 break;
-                active.setNE(wanted.ne&&!inuse.ne);           
-                active.setSE(wanted.se&&!inuse.se);
-                active.setSW(wanted.sw&&!inuse.sw);
-                active.setNW(wanted.nw&&!inuse.nw);
+            }
+            active.setNE(wanted.ne && !inuse.ne);
+            active.setSE(wanted.se && !inuse.se);
+            active.setSW(wanted.sw && !inuse.sw);
+            active.setNW(wanted.nw && !inuse.nw);
             try {
                 toSensor(s).setDisplay(active);
                 inuse.ne = inuse.ne || active.ne;
@@ -351,8 +357,7 @@ public class SensorImpl implements Sensor {
             } catch (ConnectionException e) {
                 ;
             }
-            
-            
+
         }
     }
 
@@ -393,8 +398,8 @@ public class SensorImpl implements Sensor {
             return;
         }
         timeout = System.currentTimeMillis() + maxTimeout;
-        
-        if(!iscoordinator){
+
+        if (!iscoordinator) {
             // now add us and get started
             try {
                 toSensor(coordinator).addSensor(myObj);
@@ -405,12 +410,12 @@ public class SensorImpl implements Sensor {
         }
         while (running) {
             if (iscoordinator) {
-                
-                if(needDirections){
+
+                if (needDirections) {
                     updateDirections();
                     needDirections = false;
                 }
-                
+
                 for (SensorObj sensor : sensorlist.getList()) {
                     try {
                         toSensor(sensor).ping(sensorlistversion);
@@ -418,33 +423,34 @@ public class SensorImpl implements Sensor {
                         ;
                     }
                 }
-                
-                if(!defunctsensors.isEmpty()){
+
+                if (!defunctsensors.isEmpty()) {
                     cleanDatabase();
                     needDirections = true;
                 }
-                
-                if(!newsensors.isEmpty()){
+
+                if (!newsensors.isEmpty()) {
                     updateDatabase();
                     needDirections = true;
                 }
-                
+
                 try {
                     Thread.sleep(waitingtime);
                 } catch (InterruptedException e) {
                     ;
                 }
             } else {
-                if(inconsistent)
-                   refreshDatabase(); 
-                if(timeout < System.currentTimeMillis() || needElection){
+                if (inconsistent) {
+                    refreshDatabase();
+                }
+                if ((timeout < System.currentTimeMillis()) || needElection) {
                     election();
                 }
             }
             // common
 
         }
-        
+
         // try graceful shutdown
         try {
             toSensor(coordinator).removeSensor(myObj);
