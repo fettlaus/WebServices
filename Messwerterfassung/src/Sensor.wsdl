@@ -32,6 +32,8 @@
     <wsdl:part name="version" type="xsd:long"></wsdl:part>
   </wsdl:message>
   <wsdl:message name="electionRequest">
+        <wsdl:part name="version" type="xsd:long"></wsdl:part>
+        <wsdl:part name="source" type="sensor:SensorObj"></wsdl:part>
   </wsdl:message>
   <wsdl:message name="electionResponse">
   	<wsdl:part name="success" type="xsd:boolean"></wsdl:part>
@@ -96,6 +98,12 @@
   <wsdl:message name="disableDisplayResponse">
   	<wsdl:part name="success" type="xsd:boolean"></wsdl:part>
   </wsdl:message>
+  <wsdl:message name="wantCoordinatorRequest">
+  	<wsdl:part name="version" type="xsd:long"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="wantCoordinatorResponse">
+  	<wsdl:part name="outdated" type="xsd:boolean"></wsdl:part>
+  </wsdl:message>
   <wsdl:portType name="Sensor">
     <wsdl:operation name="getDatabase">
       <wsdl:input message="sensor:getDatabaseRequest"/>
@@ -140,7 +148,8 @@
     <wsdl:operation name="removeSensor">
     	<wsdl:input message="sensor:removeSensorRequest"></wsdl:input>
     	<wsdl:output message="sensor:removeSensorResponse"></wsdl:output>
-    </wsdl:operation>
+    </wsdl:operation>
+
   </wsdl:portType>
   <wsdl:binding name="SensorSOAP" type="sensor:Sensor">
 

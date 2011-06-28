@@ -38,19 +38,19 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link Directions }
-     * 
-     */
-    public Directions createDirections() {
-        return new Directions();
-    }
-
-    /**
      * Create an instance of {@link SensorObj }
      * 
      */
     public SensorObj createSensorObj() {
         return new SensorObj();
+    }
+
+    /**
+     * Create an instance of {@link Directions }
+     * 
+     */
+    public Directions createDirections() {
+        return new Directions();
     }
 
 }

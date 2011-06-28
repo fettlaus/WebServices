@@ -27,10 +27,10 @@ public class SensorImpl implements Sensor {
     }
 
     // Config
-    int maxTimeout = 6000;
+    int maxTimeout = 4000;
     int waitingtime = 500;
     int variance = 5;
-    Level log = Level.ALL;
+    Level log = Level.FINER;
 
     // Status vars
     boolean inconsistent = false;
@@ -124,46 +124,96 @@ public class SensorImpl implements Sensor {
 
     }
 
-    @Override
-    public boolean election() {
-    	synchronized(coordinator){
-    	coordinator.location="";
-        l.log(Level.INFO, "election started");
-        needElection = false;
-        iscoordinator = false;
-        List<SensorObj> slist = new LinkedList<SensorObj>();
-        boolean gotresponse = false;
-        synchronized (this) {
-            slist.addAll(sensorlist.getList());
+    private boolean start_election(){
+        l.log(Level.FINE, "I started an election (" + Long.toHexString(myObj.getId()) + ")");
+        SensorObj largest;
+        boolean success = false;
+        boolean uptodate = false;
+        SensorList available = new SensorList();
+        // synchronize list
+        synchronized(this){
+            available.getList().addAll(sensorlist.getList());
         }
-        for (SensorObj s : slist) {
-            if (s.getId() > myObj.getId()) {
-                try {
-                    toSensor(s).election();
-                    gotresponse = true;
-                } catch (Exception e) {
-                    ;
-                }
+        // search until we find largest first available
+        while(!success && !available.getList().isEmpty()){
+            largest = myObj;
+            // find largest
+            for(SensorObj s : available.getList()){
+                if(s.getId()>largest.getId())
+                    largest = s;
+            }            
+            try {
+                uptodate = toSensor(largest).election(sensorlistversion, myObj);
+                // reached our coordinator-to-be!
+                success = true;
+            } catch (Exception e) {
+                // remove sensor from list of availables and start again
+                available.getList().remove(largest);
             }
         }
-        timeout = System.currentTimeMillis() + maxTimeout;
-        if(gotresponse)
-        	return false;
+        // check if our database is empty (FAULT!)
+        // shutdown if it is
+        if(available.getList().isEmpty()){
+            running = false;
+            return false;
+        }
+        // check if we are up to date with new coordinator
+        if(!uptodate)
+            inconsistent = true;
+        return true;        
+    }
+    
+    @Override
+    public synchronized boolean election(long version, SensorObj source) {
+        l.log(Level.FINER, "election request received from sensor (" + Long.toHexString(source.getId()) + ")");
+        // override everything if we want ourselves as a coordinator
+        if(!source.getLocation().equals(myObj.getLocation())){
+            // set coordinator of requesting sensor if we are newer or already coordinator
+            if(sensorlistversion>version || iscoordinator){
+                try {
+                    toSensor(source).setCoordinator(myObj);
+                } catch (ConnectionException e) {
+                    // meanwhile sensor quit.
+                    l.log(Level.FINE, "outdated election requesting sensor (" + Long.toHexString(myObj.getId()) + ") quit");
+                }
+                l.log(Level.FINER, "we are coordinator or requesting sensor (" + Long.toHexString(source.getId()) + ") is outdated. Set us as coordinator.");
+                return false;
+            }
+            // refresh database if requesting sensor is newer
+            if(sensorlistversion<version){
+                refreshDatabase(source);
+            }
+        }
+        //all set coordinator
         l.log(Level.INFO, "I won the election (" + Long.toHexString(myObj.getId()) + ")");
         // I won! set coordinator
+        // First make sure we have everything right as coordinator
         iscoordinator = true;
         coordinator = myObj;
-        for (SensorObj s : slist) {
+        needElection = false;
+        timeout = System.currentTimeMillis() + maxTimeout;
+        // request by ourselves. no need to propagate
+        if (source.getLocation().equals(myObj.getLocation())){
+            return true;
+        }
+        // propagate
+        SensorList temp = new SensorList();
+        // synchronize list
+        synchronized(this){
+            temp.getList().addAll(sensorlist.getList());
+        }
+        for (SensorObj s : temp.getList()) {
             if (!s.getLocation().equals(myObj.getLocation())) {
                 try {
                     toSensor(s).setCoordinator(myObj);
                 } catch (ConnectionException e) {
+                    //we lost this sensor, jim
                     ;
                 }
             }
         }
+        l.log(Level.FINER, "updated all sensors after election");
         return true;
-    	}
     }
     
     @Override
@@ -255,12 +305,12 @@ public class SensorImpl implements Sensor {
 
     @Override
     public boolean setCoordinator(SensorObj coordinator) {
-    	synchronized(coordinator){
+    	synchronized(this.coordinator){
         iscoordinator = false;
         needElection = false;
         timeout = System.currentTimeMillis() + maxTimeout;
         this.coordinator = coordinator;
-        l.log(Level.FINEST, Long.toHexString(myObj.getId()) + " got " + Long.toHexString(coordinator.id) + " as a new coordinator");
+        l.log(Level.FINE, Long.toHexString(myObj.getId()) + " got " + Long.toHexString(coordinator.id) + " as a new coordinator");
         return true;
     	}
 
@@ -475,11 +525,7 @@ public class SensorImpl implements Sensor {
                     refreshDatabase(coordinator);
                 }
                 if ((timeout < System.currentTimeMillis()) || needElection) {
-                	needElection = true;
-                	synchronized (coordinator) {
-						if(needElection)
-							election();
-					}
+					start_election();					
                 }
             }
             // common

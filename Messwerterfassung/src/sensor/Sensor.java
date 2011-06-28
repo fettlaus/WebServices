@@ -38,12 +38,18 @@ public interface Sensor {
 
     /**
      * 
+     * @param source
+     * @param version
      * @return
      *     returns boolean
      */
     @WebMethod(action = "http://sensor/election")
     @WebResult(name = "success", partName = "success")
-    public boolean election();
+    public boolean election(
+        @WebParam(name = "version", partName = "version")
+        long version,
+        @WebParam(name = "source", partName = "source")
+        SensorObj source);
 
     /**
      * 
