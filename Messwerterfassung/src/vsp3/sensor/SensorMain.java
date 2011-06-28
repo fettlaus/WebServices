@@ -60,9 +60,7 @@ public class SensorMain {
         SensorImpl sensor = new SensorImpl(meter, sensorName, existingSensor, directions);
         Endpoint endpoint = Endpoint.create(sensor);
         endpoint.publish(sensorName + "sensor");
-        sensor.run();
-        endpoint.stop();
-
+        new Thread(sensor).start();
     }
 
 }

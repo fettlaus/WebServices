@@ -20,7 +20,7 @@ import vsp3.hawmetering.HAWMeteringWebservice;
 import vsp3.hawmetering.HAWMeteringWebserviceService;
 
 @WebService(wsdlLocation = "Sensor.wsdl", serviceName = "SensorService", portName = "SensorSOAP", targetNamespace = "http://sensor/", name = "Sensor", endpointInterface = "vsp3.sensor.Sensor")
-public class SensorImpl implements Sensor {
+public class SensorImpl implements Sensor, Runnable {
 
     class ConnectionException extends Exception {
         private static final long serialVersionUID = -5728422902093458359L;
@@ -437,7 +437,8 @@ public class SensorImpl implements Sensor {
         }
     }
 
-    void run() {
+    @Override
+    public void run() {
     	synchronized(coordinator){
         if (iscoordinator) {
             // starting as coordinator
