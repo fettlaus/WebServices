@@ -533,14 +533,18 @@ public class SensorImpl implements Sensor, Runnable {
             // common
 
         }
-
+        
+        l.log(Level.SEVERE, "Sensor halted");
         // try graceful shutdown
-        try {
+        /*try {
             toSensor(coordinator).removeSensor(myObj);
         } catch (ConnectionException e) {
             l.log(Level.INFO, "graceful shutdown");
             return;
-        }
+        }*/
+    }
+    public void stop(){
+        running = false;
     }
 
 }
