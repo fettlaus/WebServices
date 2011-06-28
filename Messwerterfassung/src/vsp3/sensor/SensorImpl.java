@@ -72,7 +72,7 @@ public class SensorImpl implements Sensor {
      * @param bootstrap Some already existing sensor
      * @param directions The scales we want to write on
      */
-    SensorImpl(String meter, String name, String bootstrap, Directions directions) {
+    public SensorImpl(String meter, String name, String bootstrap, Directions directions) {
         l = Logger.getLogger(SensorImpl.class.getName());
         ConsoleHandler c = new ConsoleHandler();
         l.setUseParentHandlers(false);
