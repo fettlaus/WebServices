@@ -19,7 +19,7 @@ import javax.xml.ws.Holder;
 import vsp3.hawmetering.HAWMeteringWebservice;
 import vsp3.hawmetering.HAWMeteringWebserviceService;
 
-@WebService(wsdlLocation = "Sensor.wsdl", serviceName = "SensorService", portName = "SensorSOAP", targetNamespace = "http://sensor/", name = "Sensor", endpointInterface = "sensor.Sensor")
+@WebService(wsdlLocation = "Sensor.wsdl", serviceName = "SensorService", portName = "SensorSOAP", targetNamespace = "http://sensor/", name = "Sensor", endpointInterface = "vsp3.sensor.Sensor")
 public class SensorImpl implements Sensor {
 
     class ConnectionException extends Exception {
