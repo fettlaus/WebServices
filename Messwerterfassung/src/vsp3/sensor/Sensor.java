@@ -90,7 +90,7 @@ public interface Sensor {
     /**
      * 
      * @return
-     *     returns sensor.SensorObj
+     *     returns vsp3.sensor.SensorObj
      */
     @WebMethod(action = "http://sensor/getCoordinator")
     @WebResult(name = "coordinator", partName = "coordinator")
