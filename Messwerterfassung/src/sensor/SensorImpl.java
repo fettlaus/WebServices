@@ -27,10 +27,10 @@ public class SensorImpl implements Sensor {
     }
 
     // Config
-    int maxTimeout = 1200;
+    int maxTimeout = 6000;
     int waitingtime = 500;
     int variance = 5;
-    Level log = Level.INFO;
+    Level log = Level.ALL;
 
     // Status vars
     boolean inconsistent = false;
@@ -53,7 +53,7 @@ public class SensorImpl implements Sensor {
 
     // Environment
     String bootstrapSensor;
-    SensorObj coordinator;
+    SensorObj coordinator = new SensorObj();
     String meterURI;
     HAWMeteringWebservice meterNE;
     HAWMeteringWebservice meterSE;
@@ -83,7 +83,7 @@ public class SensorImpl implements Sensor {
 
         id = rnd.nextLong();
 
-        l.log(Level.INFO, "Starting with ID " + id);
+        l.log(Level.INFO, "Starting on port "+name+" with ID " + Long.toHexString(id));
 
         myObj.setLocation(name);
         myObj.setId(id);
@@ -126,9 +126,13 @@ public class SensorImpl implements Sensor {
 
     @Override
     public boolean election() {
-        l.log(Level.FINER, "election started");
+    	synchronized(coordinator){
+    	coordinator.location="";
+        l.log(Level.INFO, "election started");
         needElection = false;
+        iscoordinator = false;
         List<SensorObj> slist = new LinkedList<SensorObj>();
+        boolean gotresponse = false;
         synchronized (this) {
             slist.addAll(sensorlist.getList());
         }
@@ -136,13 +140,16 @@ public class SensorImpl implements Sensor {
             if (s.getId() > myObj.getId()) {
                 try {
                     toSensor(s).election();
-                    return false;
+                    gotresponse = true;
                 } catch (Exception e) {
                     ;
                 }
             }
         }
-        l.log(Level.FINE, "I won the election (" + myObj.getId() + ")");
+        timeout = System.currentTimeMillis() + maxTimeout;
+        if(gotresponse)
+        	return false;
+        l.log(Level.INFO, "I won the election (" + Long.toHexString(myObj.getId()) + ")");
         // I won! set coordinator
         iscoordinator = true;
         coordinator = myObj;
@@ -156,11 +163,14 @@ public class SensorImpl implements Sensor {
             }
         }
         return true;
+    	}
     }
-
+    
     @Override
     public SensorObj getCoordinator() {
-        return coordinator;
+    	synchronized(coordinator){
+    		return coordinator;
+    	}
     }
 
     @Override
@@ -180,7 +190,7 @@ public class SensorImpl implements Sensor {
         if (version != sensorlistversion) {
             inconsistent = true;
         }
-        l.log(Level.FINEST, "Ping received! (" + myObj.getId() + ")");
+        l.log(Level.FINEST, "Ping received! (" + Long.toHexString(myObj.getId()) + ")");
         timeout = System.currentTimeMillis() + maxTimeout;
         value += rnd.nextInt() % variance;
         value %= 100;
@@ -245,10 +255,14 @@ public class SensorImpl implements Sensor {
 
     @Override
     public boolean setCoordinator(SensorObj coordinator) {
+    	synchronized(coordinator){
         iscoordinator = false;
+        needElection = false;
+        timeout = System.currentTimeMillis() + maxTimeout;
         this.coordinator = coordinator;
-        l.log(Level.FINEST, myObj.id + " got " + coordinator.id + " as a new coordinator");
+        l.log(Level.FINEST, Long.toHexString(myObj.getId()) + " got " + Long.toHexString(coordinator.id) + " as a new coordinator");
         return true;
+    	}
 
     }
 
@@ -285,8 +299,8 @@ public class SensorImpl implements Sensor {
 
     // Webservice functions
 
-    private synchronized void refreshDatabase() {
-        l.log(Level.FINER, myObj.id + " refreshing database");
+    private void refreshDatabase() {
+        l.log(Level.FINER, Long.toHexString(myObj.getId()) + " refreshing database");
         Holder<SensorList> list = new Holder<SensorList>();
         Holder<Long> version = new Holder<Long>();
         try {
@@ -300,7 +314,7 @@ public class SensorImpl implements Sensor {
     }
 
     private void setDefunct(SensorObj sensor) {
-        l.log(Level.FINE, sensor.id + " added to defunct sensors");
+        l.log(Level.FINE, Long.toHexString(sensor.getId())+ " added to defunct sensors");
         List<SensorObj> slist = new LinkedList<SensorObj>();
         synchronized (this) {
             slist.addAll(sensorlist.getList());
@@ -325,7 +339,7 @@ public class SensorImpl implements Sensor {
     }
 
     private synchronized void updateDatabase() {
-        l.log(Level.FINE, myObj.id + " updating database");
+        l.log(Level.FINE, Long.toHexString(myObj.getId()) + " updating database");
         for (Iterator<SensorObj> i = newsensors.iterator(); i.hasNext();) {
             SensorObj s = i.next();
             i.remove();
@@ -373,7 +387,7 @@ public class SensorImpl implements Sensor {
     }
 
     void run() {
-
+    	synchronized(coordinator){
         if (iscoordinator) {
             // starting as coordinator
             coordinator = myObj;
@@ -394,6 +408,7 @@ public class SensorImpl implements Sensor {
             }
 
         }
+    	}
 
         try {
             meterNE = new HAWMeteringWebserviceService(new URL(meterURI + "hawmetering/no?wsdl"), new QName(
@@ -409,6 +424,7 @@ public class SensorImpl implements Sensor {
             l.log(Level.SEVERE, "No meter reachable");
             return;
         }
+    	
         timeout = System.currentTimeMillis() + maxTimeout;
 
         if (!iscoordinator) {
@@ -421,6 +437,8 @@ public class SensorImpl implements Sensor {
             }
             refreshDatabase();
         }
+    	
+    	
         while (running) {
             if (iscoordinator) {
 
@@ -457,7 +475,11 @@ public class SensorImpl implements Sensor {
                     refreshDatabase();
                 }
                 if ((timeout < System.currentTimeMillis()) || needElection) {
-                    election();
+                	needElection = true;
+                	synchronized (coordinator) {
+						if(needElection)
+							election();
+					}
                 }
             }
             // common
