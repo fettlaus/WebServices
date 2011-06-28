@@ -1,5 +1,5 @@
 
-package sensor;
+package vsp3.sensor;
 
 import javax.jws.WebMethod;
 import javax.jws.WebParam;

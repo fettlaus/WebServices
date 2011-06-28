@@ -1,5 +1,5 @@
 
-package sensor;
+package vsp3.sensor;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -23,13 +23,13 @@ public class SensorService
 {
 
     private final static URL SENSORSERVICE_WSDL_LOCATION;
-    private final static Logger logger = Logger.getLogger(sensor.SensorService.class.getName());
+    private final static Logger logger = Logger.getLogger(vsp3.sensor.SensorService.class.getName());
 
     static {
         URL url = null;
         try {
             URL baseUrl;
-            baseUrl = sensor.SensorService.class.getResource(".");
+            baseUrl = vsp3.sensor.SensorService.class.getResource(".");
             url = new URL(baseUrl, "file:/C:/Users/Fettlaus/workspacejava/WebServices/Messwerterfassung/src/Sensor.wsdl");
         } catch (MalformedURLException e) {
             logger.warning("Failed to create URL for the wsdl Location: 'file:/C:/Users/Fettlaus/workspacejava/WebServices/Messwerterfassung/src/Sensor.wsdl', retrying as a local file");

@@ -1,5 +1,5 @@
 
-package hawmetering;
+package vsp3.sensor;
 
 import javax.xml.bind.annotation.XmlRegistry;
 
@@ -7,7 +7,7 @@ import javax.xml.bind.annotation.XmlRegistry;
 /**
  * This object contains factory methods for each 
  * Java content interface and Java element interface 
- * generated in the hawmetering package. 
+ * generated in the sensor package. 
  * <p>An ObjectFactory allows you to programatically 
  * construct new instances of the Java representation 
  * for XML content. The Java representation of XML 
@@ -23,18 +23,34 @@ public class ObjectFactory {
 
 
     /**
-     * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: hawmetering
+     * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: sensor
      * 
      */
     public ObjectFactory() {
     }
 
     /**
-     * Create an instance of {@link WebColor }
+     * Create an instance of {@link SensorList }
      * 
      */
-    public WebColor createWebColor() {
-        return new WebColor();
+    public SensorList createSensorList() {
+        return new SensorList();
+    }
+
+    /**
+     * Create an instance of {@link SensorObj }
+     * 
+     */
+    public SensorObj createSensorObj() {
+        return new SensorObj();
+    }
+
+    /**
+     * Create an instance of {@link Directions }
+     * 
+     */
+    public Directions createDirections() {
+        return new Directions();
     }
 
 }

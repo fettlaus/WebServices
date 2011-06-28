@@ -1,5 +1,5 @@
 
-package sensor;
+package vsp3.sensor;
 
 import java.util.ArrayList;
 import java.util.List;

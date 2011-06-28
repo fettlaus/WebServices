@@ -1,7 +1,5 @@
-package sensor;
+package vsp3.sensor;
 
-import hawmetering.HAWMeteringWebservice;
-import hawmetering.HAWMeteringWebserviceService;
 
 import java.net.URL;
 import java.util.Iterator;
@@ -17,6 +15,9 @@ import java.util.logging.Logger;
 import javax.jws.WebService;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
+
+import vsp3.hawmetering.HAWMeteringWebservice;
+import vsp3.hawmetering.HAWMeteringWebserviceService;
 
 @WebService(wsdlLocation = "Sensor.wsdl", serviceName = "SensorService", portName = "SensorSOAP", targetNamespace = "http://sensor/", name = "Sensor", endpointInterface = "sensor.Sensor")
 public class SensorImpl implements Sensor {

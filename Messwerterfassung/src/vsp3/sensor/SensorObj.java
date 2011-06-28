@@ -1,5 +1,5 @@
 
-package sensor;
+package vsp3.sensor;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;

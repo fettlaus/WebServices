@@ -1,2 +1,2 @@
 @javax.xml.bind.annotation.XmlSchema(namespace = "http://sensor/")
-package sensor;
+package vsp3.sensor;

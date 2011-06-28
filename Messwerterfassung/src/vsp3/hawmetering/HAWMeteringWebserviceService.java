@@ -1,5 +1,5 @@
 
-package hawmetering;
+package vsp3.hawmetering;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -23,13 +23,13 @@ public class HAWMeteringWebserviceService
 {
 
     private final static URL HAWMETERINGWEBSERVICESERVICE_WSDL_LOCATION;
-    private final static Logger logger = Logger.getLogger(hawmetering.HAWMeteringWebserviceService.class.getName());
+    private final static Logger logger = Logger.getLogger(vsp3.hawmetering.HAWMeteringWebserviceService.class.getName());
 
     static {
         URL url = null;
         try {
             URL baseUrl;
-            baseUrl = hawmetering.HAWMeteringWebserviceService.class.getResource(".");
+            baseUrl = vsp3.hawmetering.HAWMeteringWebserviceService.class.getResource(".");
             url = new URL(baseUrl, "http://localhost:9999/hawmetering/nw?wsdl");
         } catch (MalformedURLException e) {
             logger.warning("Failed to create URL for the wsdl Location: 'http://localhost:9999/hawmetering/nw?wsdl', retrying as a local file");

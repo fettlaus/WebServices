@@ -1,2 +1,2 @@
 @javax.xml.bind.annotation.XmlSchema(namespace = "http://hawmetering/")
-package hawmetering;
+package vsp3.hawmetering;

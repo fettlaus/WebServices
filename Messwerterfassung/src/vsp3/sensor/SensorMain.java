@@ -1,4 +1,4 @@
-package sensor;
+package vsp3.sensor;
 
 import java.net.MalformedURLException;
 import java.net.URL;
