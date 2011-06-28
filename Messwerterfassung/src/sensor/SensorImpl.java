@@ -299,12 +299,12 @@ public class SensorImpl implements Sensor {
 
     // Webservice functions
 
-    private void refreshDatabase() {
+    private void refreshDatabase(SensorObj source) {
         l.log(Level.FINER, Long.toHexString(myObj.getId()) + " refreshing database");
         Holder<SensorList> list = new Holder<SensorList>();
         Holder<Long> version = new Holder<Long>();
         try {
-            toSensor(coordinator).getDatabase(list, version);
+            toSensor(source).getDatabase(list, version);
             sensorlist = list.value;
             sensorlistversion = version.value;
             inconsistent = false;
@@ -435,7 +435,7 @@ public class SensorImpl implements Sensor {
                 l.log(Level.SEVERE, "Can't connect to coordinator");
                 return;
             }
-            refreshDatabase();
+            refreshDatabase(coordinator);
         }
     	
     	
@@ -472,7 +472,7 @@ public class SensorImpl implements Sensor {
                 }
             } else {
                 if (inconsistent) {
-                    refreshDatabase();
+                    refreshDatabase(coordinator);
                 }
                 if ((timeout < System.currentTimeMillis()) || needElection) {
                 	needElection = true;
