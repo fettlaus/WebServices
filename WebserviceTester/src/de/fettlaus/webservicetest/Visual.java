@@ -188,26 +188,7 @@ public class Visual {
             d[5].setSW(true);
             d[5].setNW(true);
             meter = "http://localhost:9999/";
-            sen = new String[]{"http://localhost:8787/","http://localhost:8788/","http://localhost:8789/","http://localhost:8790/","http://localhost:8791/","http://localhost:8792/"};
-            //rs[0] = new SensorImpl("http://localhost:9999/", "http://localhost:8787/", null, d[0]);
-            //rs[0] = new SensorImpl("http://localhost:9999/", "http://localhost:8787/", null, d[1]);
-            //rs[0] = new SensorImpl("http://localhost:9999/", "http://localhost:8787/", null, d[2]);
-            //rs[0] = new SensorImpl("http://localhost:9999/", "http://localhost:8787/", null, d[3]);
-            //rs[0] = new SensorImpl("http://localhost:9999/", "http://localhost:8787/", null, d[4]);
-            //rs[0] = new SensorImpl("http://localhost:9999/", "http://localhost:8787/", null, d[5]);
-            /*
-            new Runnable(){
-                @Override
-                public void run() {
-                    
-                    SensorImpl s = new SensorImpl("http://localhost:9999/", "http://localhost:8787/", null, d);
-                    Endpoint endpoint = Endpoint.create(s);
-                    endpoint.publish("http://localhost:8787/sensor");
-                    s.run();                    
-                }
-                
-            };
-*/          
+            sen = new String[]{"http://localhost:8787/","http://localhost:8788/","http://localhost:8789/","http://localhost:8790/","http://localhost:8791/","http://localhost:8792/"};         
 
             il = new java.awt.event.ItemListener() {
                 @Override
