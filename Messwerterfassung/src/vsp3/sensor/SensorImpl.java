@@ -61,7 +61,8 @@ public class SensorImpl implements Sensor, Runnable {
     HAWMeteringWebservice meterSW;
     HAWMeteringWebservice meterNW;
 
-    Logger l;
+    static final Logger l = Logger.getLogger(SensorImpl.class.getName());
+    static final ConsoleHandler c = new ConsoleHandler();
     long timeout;
     Random rnd = new Random();
     LogManager lm;
@@ -73,11 +74,10 @@ public class SensorImpl implements Sensor, Runnable {
      * @param directions The scales we want to write on
      */
     public SensorImpl(String meter, String name, String bootstrap, Directions directions) {
-        l = Logger.getLogger(SensorImpl.class.getName());
-        ConsoleHandler c = new ConsoleHandler();
         l.setUseParentHandlers(false);
         l.setLevel(log);
         c.setLevel(log);
+        l.removeHandler(c);
         l.addHandler(c);
 
         bootstrapSensor = bootstrap;
